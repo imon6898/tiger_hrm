@@ -111,8 +111,8 @@ class BaseUrl {
   static const String baseUrl = 'http://175.29.186.86:7021';
   static const String authorization = 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==';
 
-  static const String baseUrlST = 'http://hrm.startech.info.bd:51030';
-  static const String authorizationST = 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==';
+  // static const String baseUrlST = 'http://hrm.startech.info.bd:51030';
+  // static const String authorizationST = 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==';
 
 }
 

@@ -5,9 +5,20 @@ import 'package:pdf/pdf.dart' as pw;
 
 import 'util.dart';
 
-
 class PSPdfPage extends StatefulWidget {
-  const PSPdfPage({Key? key}) : super(key: key);
+  final int selectedCategoryId;
+  final String userName;
+  final String empCode;
+  final String companyID;
+  final String companyName;
+
+  const PSPdfPage({Key? key,
+    required this.selectedCategoryId,
+    required this.userName,
+    required this.empCode,
+    required this.companyID,
+    required this.companyName,
+  }) : super(key: key);
 
   @override
   State<PSPdfPage> createState() => _PSPdfPageState();
@@ -31,21 +42,25 @@ class _PSPdfPageState extends State<PSPdfPage> {
 
   @override
   Widget build(BuildContext context) {
+
     final action = <PdfPreviewAction>[
-      if (!kIsWeb) const PdfPreviewAction(icon: Icon(Icons.save), onPressed: saveAsFile)
+      if (!kIsWeb) const PdfPreviewAction(icon: Icon(Icons.save), onPressed: saveAsFile),
     ];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xff162b4a),
-        title: Text('Pdf',
+        title: Text(
+          'Pdf',
           style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white
-          ),),
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios,color: Colors.white),
-          onPressed: () { Navigator.pop(context); },
-
+          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
       ),
       body: PdfPreview(
@@ -53,7 +68,11 @@ class _PSPdfPageState extends State<PSPdfPage> {
         actions: action,
         onPrinted: showPrintedToast,
         onShared: showShearedToast,
-        build: generatePdfPS,
+        build: (format) => generatePdfPS(format,
+          widget.empCode,
+          widget.companyID,
+          widget.selectedCategoryId,
+        ),
       ),
     );
   }

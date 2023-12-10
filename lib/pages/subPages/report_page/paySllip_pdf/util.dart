@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
@@ -9,7 +10,177 @@ import 'package:printing/printing.dart' as printing;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 
-Future<Uint8List> generatePdfPS(final PdfPageFormat format) async {
+import '../../../../LoginApiController/loginController.dart';
+
+
+Future<Map<String, dynamic>?> featchGetPaySlip(String empCode, selectedCategoryId, String companyID) async {
+  var headers = {
+    'Authorization': BaseUrl.authorization,
+  };
+
+  var request = http.Request(
+    'GET',
+    Uri.parse('${BaseUrl.baseUrl}/api/v1/salary/get-pay-slip/$empCode/$selectedCategoryId/$companyID/-1'),
+  );
+
+  request.headers.addAll(headers);
+
+  http.StreamedResponse response = await request.send();
+
+  if (response.statusCode == 200) {
+    // Decode the response body using json.decode
+    List<dynamic> dataList = json.decode(await response.stream.bytesToString());
+
+    Map<String, dynamic> data = dataList.isNotEmpty ? dataList.first : {};
+
+    // Extracting relevant fields from the API response
+    var empCode = data['empCode'];
+    var empName = data['empName'];
+    var designation = data['designation'];
+    var department = data['department'];
+    var periodName = data['periodName'];
+    var basic = data['basic'];
+    var remuneration = data['remuneration'];
+    var houseRent = data['houseRent'];
+    var convAllo = data['convAllo'];
+    var mediAllo = data['mediAllo'];
+    var grossPay = data['grossPay'];
+    var carAllo = data['carAllo'];
+    var spacilAllo = data['spacilAllo'];
+    var lfa = data['lfa'];
+    var elEncase = data['elEncase'];
+    var salesComm = data['salesComm'];
+    var salaryAdj = data['salaryAdj'];
+    var advance = data['advance'];
+    var fstBonus = data['fstBonus'];
+    var perBonus = data['perBonus'];
+    var otherAddi = data['otherAddi'];
+    var totalAddi = data['totalAddi'];
+    var exCelBill = data['exCelBill'];
+    var exFulBill = data['exFulBill'];
+    var fmlyPackge = data['fmlyPackge'];
+    var instalDeduct = data['instalDeduct'];
+    var absDeduct = data['absDeduct'];
+    var salaryDeduct = data['salaryDeduct'];
+    var otherDeduct = data['otherDeduct'];
+    var advanceDeduct = data['advanceDeduct'];
+    var pfOwn = data['pfOwn'];
+    var incomeTax = data['incomeTax'];
+    var totalDeduct = data['totalDeduct'];
+    var netPay = data['netPay'];
+    var extraAddition = data['extraAddition'];
+    var bank = data['bank'];
+    var bankBranch = data['bankBranch'];
+    var accountNo = data['accountNo'];
+    var payby = data['payby'];
+
+    return {
+      'empCode' : empCode,
+      'empName' : empName,
+      'designation' : designation,
+      'department' : department,
+      'periodName' : periodName,
+      'basic' : basic,
+      'remuneration' : remuneration,
+      'houseRent' : houseRent,
+      'convAllo' : convAllo,
+      'mediAllo' : mediAllo,
+      'grossPay' : grossPay,
+      'carAllo' : carAllo,
+      'spacilAllo' : spacilAllo,
+      'lfa' : lfa,
+      'elEncase' : elEncase,
+      'salesComm' : salesComm,
+      'salaryAdj' : salaryAdj,
+      'advance' : advance,
+      'fstBonus' : fstBonus,
+      'perBonus' : perBonus,
+      'otherAddi' : otherAddi,
+      'totalAddi' : totalAddi,
+      'exCelBill' : exCelBill,
+      'exFulBill' : exFulBill,
+      'fmlyPackge' : fmlyPackge,
+      'instalDeduct' : instalDeduct,
+      'absDeduct' : absDeduct,
+      'salaryDeduct' : salaryDeduct,
+      'otherDeduct' : otherDeduct,
+      'advanceDeduct' : advanceDeduct,
+      'pfOwn' : pfOwn,
+      'incomeTax' : incomeTax,
+      'totalDeduct' : totalDeduct,
+      'netPay' : netPay,
+      'extraAddition' : extraAddition,
+      'bank' : bank,
+      'bankBranch' : bankBranch,
+      'accountNo' : accountNo,
+      'payby' : payby,
+
+    };
+
+  } else {
+    print(response.reasonPhrase);
+  }
+}
+
+Future<Uint8List> generatePdfPS(
+    PdfPageFormat format,
+    String empCode,
+    String companyID,
+    int selectedCategoryId) async {
+
+  final Map<String, dynamic>? paySlipData = await featchGetPaySlip(empCode, selectedCategoryId, companyID);
+
+  if (paySlipData == null) {
+    // Handle the case where featchGetPaySlip failed
+    print('Error fetching pay slip data');
+    // You can return an empty Uint8List or handle it as per your requirement
+    return Uint8List.fromList([]);
+  }
+
+  // Extract data from paySlipData
+  //final String empCode = paySlipData['empCode'];
+  final String empName = paySlipData['empName'] ?? '';
+  final String designation = paySlipData['designation'] ?? '';
+  final String department = paySlipData['department'] ?? '';
+  final String periodName = paySlipData['periodName'] ?? '';
+  final int basic = paySlipData['basic'] as int? ?? 0;
+  final int remuneration = paySlipData['remuneration'] as int? ?? 0;
+  final int houseRent = paySlipData['houseRent'] as int? ?? 0;
+  final int convAllo = paySlipData['convAllo'] as int? ?? 0;
+  final int mediAllo = paySlipData['mediAllo'] as int? ?? 0;
+  final int grossPay = paySlipData['grossPay'] as int? ?? 0;
+  final int carAllo = paySlipData['carAllo'] as int? ?? 0;
+  final int spacilAllo = paySlipData['spacilAllo'] as int? ?? 0;
+  final int lfa = paySlipData['lfa'] as int? ?? 0;
+  final int elEncase = paySlipData['elEncase'] as int? ?? 0;
+  final int salesComm = paySlipData['salesComm'] as int? ?? 0;
+  final int salaryAdj = paySlipData['salaryAdj'] as int? ?? 0;
+  final int advance = paySlipData['advance'] as int? ?? 0;
+  final int fstBonus = paySlipData['fstBonus'] as int? ?? 0;
+  final int perBonus = paySlipData['perBonus'] as int? ?? 0;
+  final int otherAddi = paySlipData['otherAddi'] as int? ?? 0;
+  final int totalAddi = paySlipData['totalAddi'] as int? ?? 0;
+  final int exCelBill = paySlipData['exCelBill'] as int? ?? 0;
+  final int exFulBill = paySlipData['exFulBill'] as int? ?? 0;
+  final int fmlyPackge = paySlipData['fmlyPackge'] as int? ?? 0;
+  final int instalDeduct = paySlipData['instalDeduct'] as int? ?? 0;
+  final int absDeduct = paySlipData['absDeduct'] as int? ?? 0;
+  final int salaryDeduct = paySlipData['salaryDeduct'] as int? ?? 0;
+  final int otherDeduct = paySlipData['otherDeduct'] as int? ?? 0;
+  final int advanceDeduct = paySlipData['advanceDeduct'] as int? ?? 0;
+  final int pfOwn = paySlipData['pfOwn'] as int? ?? 0;
+  final int incomeTax = paySlipData['incomeTax'] as int? ?? 0;
+  final int totalDeduct = paySlipData['totalDeduct'] as int? ?? 0;
+  final int netPay = paySlipData['netPay'] as int? ?? 0;
+  final int extraAddition = paySlipData['extraAddition'] as int? ?? 0;
+
+  final String bank = paySlipData['bank'] ?? '';
+  final String bankBranch = paySlipData['bankBranch'] ?? '';
+  final String accountNo = paySlipData['accountNo'] ?? '';
+  final String payby = paySlipData['payby'] ?? '';
+
+
+
   final doc = pw.Document(
     title: 'Flutter School',
   );
@@ -81,17 +252,17 @@ Future<Uint8List> generatePdfPS(final PdfPageFormat format) async {
                           child: pw.Column(
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
                             children: [
-                              pw.Text('November-2022', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              pw.Text(periodName, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                               pw.SizedBox(height: 5),
-                              pw.Text('20', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              pw.Text(empCode, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                               pw.SizedBox(height: 5),
-                              pw.Text('Aminul Karim Khan', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              pw.Text(empName, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                               pw.SizedBox(height: 5),
-                              pw.Text('Manager', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              pw.Text(designation, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                               pw.SizedBox(height: 5),
-                              pw.Text('HR & Admin', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              pw.Text(department, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                               pw.SizedBox(height: 5),
-                              pw.Text('Bank', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              pw.Text(payby, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -150,15 +321,15 @@ Future<Uint8List> generatePdfPS(final PdfPageFormat format) async {
                               pw.Table(
                                 border: pw.TableBorder.all(color: PdfColors.black),
                                 children: [
-                                  pwTableRow(['BASIC :', '31,900']),
-                                  pwTableRow(['HOUSE RENT:', '15,950']),
+                                  pwTableRow(['BASIC :', basic.toString()]),
+                                  pwTableRow(['HOUSE RENT:', houseRent.toString()]),
                                   pwTableRow(['ENTERTAINMENT:', '0']),
-                                  pwTableRow(['MEDICAL:', '3,190']),
-                                  pwTableRow(['TRANSPORT:', '2,500']),
+                                  pwTableRow(['MEDICAL:', mediAllo.toString()]),
+                                  pwTableRow(['TRANSPORT:', convAllo.toString()]),
                                   pwTableRow(['SPECIAL ALLOWNCE:', '0']),
                                   pwTableRow(['MOBILE ALLOWNCE:', '0']),
                                   pwTableRow(['ARREAR:', '0']),
-                                  pwTableRowWithBold(['TOTAL ADDITION:', '53,540']),
+                                  pwTableRowWithBold(['TOTAL ADDITION:', grossPay.toString()]),
                                 ],
                               ),
                             ],
@@ -174,7 +345,7 @@ Future<Uint8List> generatePdfPS(final PdfPageFormat format) async {
                                 border: pw.TableBorder.all(color: PdfColors.black),
                                 children: [
                                   // Row 1
-                                  pwTableRow(['INCOME TAX:', '417']),
+                                  pwTableRow(['INCOME TAX:', incomeTax.toString()]),
                                   pwTableRow(['PROVIDENT FUND:', '0']),
                                   pwTableRow(['ADVANCE SALARY/LOAN:', '0']),
                                   pwTableRow(['FOODING:', '0']),
@@ -182,7 +353,7 @@ Future<Uint8List> generatePdfPS(final PdfPageFormat format) async {
                                   pwTableRow(['OTHERS:', '0']),
                                   pwTableRow(['HOUSING POLICY:', '0']),
                                   pwTableRow(['None', '0']),
-                                  pwTableRowWithBold(['TOTAL DEDUCTION:', '417']),
+                                  pwTableRowWithBold(['TOTAL DEDUCTION:', totalDeduct.toString()]),
                                 ],
                               ),
                             ],
@@ -209,7 +380,7 @@ Future<Uint8List> generatePdfPS(final PdfPageFormat format) async {
                             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                             children: [
                               pw.Text('NET PAYABLE:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                              pw.Text('50,000', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              pw.Text(netPay.toString(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -253,11 +424,11 @@ Future<Uint8List> generatePdfPS(final PdfPageFormat format) async {
                           child: pw.Column(
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
                             children: [
-                              pw.Text('The Bank', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              pw.Text(bank, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                               pw.SizedBox(height: 5),
-                              pw.Text('Banani', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              pw.Text(bankBranch, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                               pw.SizedBox(height: 5),
-                              pw.Text('1912100014331', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              pw.Text(accountNo, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
 
                             ],
                           ),

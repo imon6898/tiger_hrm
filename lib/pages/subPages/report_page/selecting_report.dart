@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/customTextFieldbyimam.dart';
+import 'paySllip_pdf/ui_pay_sllip.dart';
 import '../../../Coustom_widget/CustomDropdownField.dart';
 import '../../../Coustom_widget/Textfield.dart';
 import 'dart:io';
@@ -9,12 +11,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/CustomDatePickerField.dart';
 import 'package:http/http.dart' as http;
 import 'package:pdf/widgets.dart' as pw;
-
 import 'attendence_pdf/pdf_page.dart';
 import 'loan_pdf/pdf_page.dart';
 import 'paySllip_pdf/pdf_page.dart';
-
-
 
 
 
@@ -41,6 +40,12 @@ class _ReportPageState extends State<ReportPage> {
   TextEditingController empCodeController = TextEditingController();
   TextEditingController fromDateController = TextEditingController();
   TextEditingController endDateController = TextEditingController();
+
+
+  String? selectedSalaryPeriod;
+  List<String>? salaryPeriods;
+  bool isDropdownVisible = false;
+
 
   static final String title = 'Invoice';
 
@@ -85,7 +90,7 @@ class _ReportPageState extends State<ReportPage> {
 
 
 
-  Future<File> generatePdf() async {
+  Future<File> generatePdf(String fromDate, String endDate) async {
     final pdf = pw.Document();
 
     // Add content to the PDF (customize this based on your requirements)
@@ -109,6 +114,11 @@ class _ReportPageState extends State<ReportPage> {
 
 
 
+
+
+
+  bool isExpandedSalaryPeriodId = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,8 +127,8 @@ class _ReportPageState extends State<ReportPage> {
         title: Text(
           "Select Report",
           style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white
+              fontWeight: FontWeight.bold,
+              color: Colors.white
           ),
         ),
         leading: IconButton(
@@ -179,6 +189,15 @@ class _ReportPageState extends State<ReportPage> {
                                     // Call the function to generate the PDF and get the File object
                                     //File pdfFile = await generatePdf();
 
+                                    String formattedFromDate = fromDate!.toString().split(" ")[0];
+                                    String formattedEndDate = endDate!.toString().split(" ")[0];
+
+                                    // Call the function to generate the PDF and get the File object
+                                    File pdfFile = await generatePdf(formattedFromDate, formattedEndDate);
+
+                                    print('From Date: $formattedFromDate');
+                                    print('End Date: $formattedEndDate');
+
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -187,6 +206,8 @@ class _ReportPageState extends State<ReportPage> {
                                           empCode: widget.empCode,
                                           companyID: widget.companyID,
                                           companyName: widget.companyName,
+                                          fromDate: fromDate!,
+                                          endDate: endDate!,
                                         ),
                                       ),
                                     );
@@ -225,85 +246,19 @@ class _ReportPageState extends State<ReportPage> {
                   title: const Text('Pay Sllip'),
                   subtitle: const Text('Check Your Pay Sllip'),
                   onTap: () {
+
                     Get.bottomSheet(
                         Container(
                           decoration: BoxDecoration(
                             color: Color(0xffefebef),
                             borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),
                           ),
-                          child: Column(
-                            children: [
-                              SizedBox(height: 10),
-                              CustomTextFields(
-                                labelText: 'Employee Code',
-                                hintText: 'Employee Code',
-                                borderColor: 0xFFBCC2C2,
-                                filled: true,
-                                disableOrEnable: false,
-                                controller: empCodeController,
-                              ),
-
-                              // CustomDropdownTextField(
-                              //   labelText: '',
-                              //   hintText: '',
-                              //   items: [],
-                              //   controller: empCodeController,
-                              //
-                              // ),
-
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 30),
-                                child: CustomTextFieldbyimam(
-                                  labelText: 'Salary Period',
-                                  hintText: 'Salary Period',
-                                  disableOrEnable: false,
-                                  suffixIcon: FloatingActionButton(
-                                    backgroundColor: Colors.transparent,
-                                    child: Icon(Icons.arrow_drop_down_circle_outlined),
-                                    elevation: 0,
-                                    onPressed: () {  },
-                                  ),
-                                  textFieldHeight: 50,
-                                ),
-                              ),
-
-                              SizedBox(height: 10,),
-
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    // Call the function to generate the PDF and get the File object
-                                    //File pdfFile = await generatePdf();
-
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => PSPdfPage(),
-                                      ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    shape: StadiumBorder(),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
-                                        child: Icon(Icons.save_as_outlined, color: Colors.white),
-                                      ),
-                                      Text(
-                                        'Generate Pdf',
-                                        style: TextStyle(fontSize: 20, color: Colors.white),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
+                          child: CustomDropdown(
+                            userName: widget.userName,
+                            empCode: widget.empCode,
+                            companyID: widget.companyID,
+                            companyName: widget.companyName,
+                          )
                         )
                     );
                   },

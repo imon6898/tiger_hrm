@@ -30,7 +30,7 @@ class _LeaveApproveByHrState extends State<LeaveApproveByHr> {
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: const Icon(Icons.arrow_back_ios_rounded),
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white,),
         ),
         title: const Text(
           style:

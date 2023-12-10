@@ -37,10 +37,14 @@ dependencies:
   cupertino_icons: ^1.0.2
   dropdown_button2: ^2.3.9
   dropdown_textfield: ^1.0.8
+  dropdown_search:
+  easy_search_bar:
+  speech_to_text:
   blobs: ^2.0.0
   lottie: ^2.6.0
   intl: ^0.18.1
   get: ^4.6.6
+  provider:
   smooth_page_indicator: 1.0.1
   http: ^1.1.0
   shared_preferences: ^2.2.2

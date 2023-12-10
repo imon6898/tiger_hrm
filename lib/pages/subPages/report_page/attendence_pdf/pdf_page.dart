@@ -1,9 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart' as pw;
+import 'package:http/http.dart' as http;
+import 'package:tiger_erp_hrm/pages/subPages/report_page/attendence_pdf/util.dart';
+import '../../../../LoginApiController/loginController.dart';
 
-import 'util.dart';
+
 
 
 class PdfPage extends StatefulWidget {
@@ -12,6 +17,8 @@ class PdfPage extends StatefulWidget {
   final String empCode;
   final String companyID;
   final String companyName;
+  final DateTime fromDate;
+  final DateTime endDate;
 
   const PdfPage({
     Key? key,
@@ -19,6 +26,8 @@ class PdfPage extends StatefulWidget {
     required this.empCode,
     required this.companyID,
     required this.companyName,
+    required this.fromDate,
+    required this.endDate,
   }) : super(key: key);
 
   @override
@@ -27,11 +36,13 @@ class PdfPage extends StatefulWidget {
 
 class _PdfPageState extends State<PdfPage> {
   PrintingInfo? printingInfo;
+  //late List<GetIndividualInOutReportModel> reportData;
 
   @override
   void initState() {
     super.initState();
     _init();
+
   }
 
   Future<void> _init() async {
@@ -40,6 +51,16 @@ class _PdfPageState extends State<PdfPage> {
       printingInfo = info;
     });
   }
+
+  String formatDate(DateTime date) {
+    return "${date.year}-${_twoDigits(date.month)}-${_twoDigits(date.day)}";
+  }
+
+  String _twoDigits(int n) {
+    if (n >= 10) return "$n";
+    return "0$n";
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +86,12 @@ class _PdfPageState extends State<PdfPage> {
         actions: action,
         onPrinted: showPrintedToast,
         onShared: showShearedToast,
-        build: generatePdf,
+        build: (format) => generatePdf(format,
+          widget.empCode,
+          widget.companyID,
+          formatDate(widget.fromDate),
+          formatDate(widget.endDate),
+        ),
       ),
     );
   }

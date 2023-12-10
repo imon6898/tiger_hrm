@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
 import 'package:tiger_erp_hrm/pages/subPages/apply_attendence/apply_attendance.dart';
 import 'package:tiger_erp_hrm/pages/subPages/approve_attend.dart';
-import 'package:tiger_erp_hrm/pages/subPages/leave_apply.dart';
+import 'package:tiger_erp_hrm/pages/subPages/leave_apply/leave_apply.dart';
 import 'package:tiger_erp_hrm/pages/subPages/leave_approve/ApproveLeaves.dart';
 import 'package:tiger_erp_hrm/pages/subPages/leave_approve_by_hr/leaveApproveByHr.dart';
 import 'package:tiger_erp_hrm/pages/subPages/my_tasks.dart';

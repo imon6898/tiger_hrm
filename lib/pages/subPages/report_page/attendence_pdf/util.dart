@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -5,35 +6,74 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart' as printing; // Use an alias for the printing package
+import 'package:printing/printing.dart' as printing;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 
-Future<Uint8List>generatePdf(final PdfPageFormat format) async
-{
+///api integration
+
+Future<dynamic> getIndividualInOutReport(String empCode, String companyID, String fromDate, String endDate) async {
+  var headers = {
+    'accept': '*/*',
+    'Authorization': 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==',
+  };
+
+  var url = Uri.parse('http://175.29.186.86:7021/api/v1/atten/get-individual-inout-report/$empCode/$companyID/$fromDate/$endDate');
+
+  var response = await http.get(url, headers: headers);
+
+  if (response.statusCode == 200) {
+    var jsonResponseList = json.decode(response.body);
+    if (jsonResponseList is List && jsonResponseList.isNotEmpty) {
+
+      // Save data to shared preferences
+      saveDataToSharedPreferences(jsonResponseList[0]);
+
+      return jsonResponseList;
+    }
+  } else {
+    print('Request failed with status: ${response.statusCode}');
+  }
+
+  return {};
+}
+
+void saveDataToSharedPreferences( data) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('date', data['date'] ?? '');
+  prefs.setString('day', data['day'] ?? '');
+  prefs.setString('login', data['login']?? '');
+  prefs.setString('logout', data['logout'] ?? '');
+  prefs.setString('workingHour', data['workingHour'] ?? '');
+  prefs.setString('lates', data['lates'] ?? '');
+  prefs.setString('earlier', data['earlier'] ?? '');
+  prefs.setString('status', data['status'] ?? '');
+}
+
+Future<Uint8List> generatePdf(final PdfPageFormat format, String empCode,
+    String companyID, String fromDate, String endDate) async {
+  List individualInOutReport = await getIndividualInOutReport(empCode, companyID, fromDate, endDate);
+  print("individualInOutReport: $individualInOutReport");
   final doc = pw.Document(
-    title:  'Star Tech',
+    title: 'Star Tech',
   );
-  final logoImage=pw.MemoryImage((await rootBundle.load('lib/images/Star-Tech.png')).buffer.asUint8List());
 
-  final FooterImage=pw.MemoryImage((await rootBundle.load('lib/images/Star-Tech.png')).buffer.asUint8List());
-
-  final font=await rootBundle.load('lib/images/OpenSans-Regular.ttf');
-  final ttf=pw.Font.ttf(font);
-
-  final pageTheme=await _myPageTheme(format);
+  final logoImage = pw.MemoryImage((await rootBundle.load('lib/images/Star-Tech.png')).buffer.asUint8List());
+  final pageTheme = await _myPageTheme(format);
 
   doc.addPage(
     pw.MultiPage(
-      pageTheme: pageTheme,
+      pageTheme: await _myPageTheme(format),
       header: (final context) => pw.Center(
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
-            pw.Text('Start Tech & Engineering LTD.', style: pw.TextStyle(fontWeight: pw.FontWeight.bold,fontSize: 20)),
-            pw.Text('6th floor, 28 Kazi Nazrul Islam Ave, Navana Zohura Square, Dhaka 1000', style: pw.TextStyle(fontWeight: pw.FontWeight.bold,fontSize: 11)),
-            pw.Text('Employee Monthly In & Out Report', style: pw.TextStyle(fontWeight: pw.FontWeight.bold,fontSize: 11)),
+            pw.Text('Start Tech & Engineering LTD.', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20)),
+            pw.Text('6th floor, 28 Kazi Nazrul Islam Ave, Navana Zohura Square, Dhaka 1000', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+            pw.Text('Employee Monthly In & Out Report', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
           ],
         ),
       ),
@@ -50,17 +90,16 @@ Future<Uint8List>generatePdf(final PdfPageFormat format) async
                 pw.Padding(padding: const pw.EdgeInsets.only(top: 20)),
                 pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  //mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Expanded(
                       child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Row(
-                              children: [
-                                pw.Text('Emp.Code: ', textAlign: pw.TextAlign.right),
-                                pw.Text('20', textAlign: pw.TextAlign.right),
-                              ]
+                            children: [
+                              pw.Text('Emp.Code: ', textAlign: pw.TextAlign.right),
+                              pw.Text(individualInOutReport[0]['empCodS'].toString(), textAlign: pw.TextAlign.right),
+                            ],
                           ),
                         ],
                       ),
@@ -70,32 +109,29 @@ Future<Uint8List>generatePdf(final PdfPageFormat format) async
                         crossAxisAlignment: pw.CrossAxisAlignment.end,
                         children: [
                           pw.Row(
-                              children: [
-                                pw.Text('Department: ', textAlign: pw.TextAlign.right),
-                                pw.Text('HR & Admin', textAlign: pw.TextAlign.right),
-                              ]
+                            children: [
+                              pw.Text('Department: ', textAlign: pw.TextAlign.right),
+                              pw.Text(individualInOutReport[0]['department'].toString(), textAlign: pw.TextAlign.right),
+                            ],
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-
                 pw.SizedBox(height: 5),
-
                 pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  //mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Expanded(
                       child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Row(
-                              children: [
-                                pw.Text('Emp Name: ', textAlign: pw.TextAlign.right),
-                                pw.Text('Imam Hossain', textAlign: pw.TextAlign.right),
-                              ]
+                            children: [
+                              pw.Text('Emp Name: ', textAlign: pw.TextAlign.right),
+                              pw.Text(individualInOutReport[0]['empName'].toString(), textAlign: pw.TextAlign.right),
+                            ],
                           ),
                         ],
                       ),
@@ -105,24 +141,22 @@ Future<Uint8List>generatePdf(final PdfPageFormat format) async
                         crossAxisAlignment: pw.CrossAxisAlignment.end,
                         children: [
                           pw.Row(
-                              children: [
-                                pw.Text('Designation: ', textAlign: pw.TextAlign.right),
-                                pw.Text('Manager', textAlign: pw.TextAlign.right),
-                              ]
+                            children: [
+                              pw.Text('Designation: ', textAlign: pw.TextAlign.right),
+                              pw.Text(individualInOutReport[0]['designation'].toString(), textAlign: pw.TextAlign.right),
+                            ],
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-
                 pw.SizedBox(height: 5),
-
                 pw.Row(
-                    children: [
-                      pw.Text('Branch Name: ', textAlign: pw.TextAlign.right),
-                      pw.Text('Head Office', textAlign: pw.TextAlign.right),
-                    ]
+                  children: [
+                    pw.Text('Branch Name: ', textAlign: pw.TextAlign.right),
+                    pw.Text(individualInOutReport[0]['officeBranch'].toString(), textAlign: pw.TextAlign.right),
+                  ],
                 ),
               ],
             ),
@@ -145,57 +179,74 @@ Future<Uint8List>generatePdf(final PdfPageFormat format) async
               _buildTableCell('Status'),
               _buildTableCell('Comment'),
             ],
+
             decoration: pw.BoxDecoration(
               color: PdfColor.fromHex("#DDDDDD"),
             ),
           ),
         );
 
-        for (int i = 1; i <= 100; i++) {
-          tableRows.add(
-            pw.TableRow(
-              children: [
-                _buildTableDataCell(i.toString()),
-                _buildTableDataCell('1-Nov-23'),
-                _buildTableDataCell('Wednesday'),
-                _buildTableDataCell('09:11'),
-                _buildTableDataCell('21:21'),
-                _buildTableDataCell('12:09:28'),
-                _buildTableDataCell('satarday'),
-                _buildTableDataCell('satarday'),
-                _buildTableDataCell('satarday'),
-                _buildTableDataCell('satarday'),
-              ],
-            ),
-          );
 
-          // Check if the number of rows is a multiple of 20
+        if (individualInOutReport.isNotEmpty) {
+          for (int i = 0; i < individualInOutReport.length; i++) {
+            Map rowData = individualInOutReport[i];
 
-          if (i % 100 == 0) {
-            // Add the table rows to the content
-            content.add(
-
-                pw.Table(
-                    border: pw.TableBorder.all(),
-                    children: tableRows
-                ),
+            tableRows.add(
+              pw.TableRow(
+                children: [
+                  _buildTableDataCell((i + 1).toString()),
+                  _buildTableDataCell(rowData['date'] ?? ''),
+                  _buildTableDataCell(rowData['day'] ?? ''),
+                  _buildTableDataCell(rowData['login'] ?? ''),
+                  _buildTableDataCell(rowData['logout'] ?? ''),
+                  _buildTableDataCell(rowData['workingHour'] ?? ''),
+                  _buildTableDataCell(rowData['lates'] ?? ''),
+                  _buildTableDataCell(rowData['earlier'] ?? ''),
+                  _buildTableDataCell(rowData['status'] ?? ''),
+                  _buildTableDataCell(rowData['comment'] ?? ''),
+                ],
+              ),
             );
-            // Clear the table rows for the next page
+
+
+            content.add(
+              pw.Table(
+                border: pw.TableBorder.all(),
+                columnWidths: {
+                  0: const pw.FixedColumnWidth(20), // SL.
+                  1: const pw.FlexColumnWidth(),     // Date
+                  2: const pw.FlexColumnWidth(),     // Day
+                  3: const pw.FlexColumnWidth(),     // In Time
+                  4: const pw.FlexColumnWidth(),     // Out Time
+                  5: const pw.FlexColumnWidth(),     // W/Hour
+                  6: const pw.FlexColumnWidth(),     // Late
+                  7: const pw.FlexColumnWidth(),     // Earlier
+                  8: const pw.FlexColumnWidth(),     // Status
+                  9: const pw.FlexColumnWidth(),     // Comment
+                },
+                children: tableRows,
+              ),
+            );
             tableRows = [];
+
           }
+
+          if (tableRows.isNotEmpty) {
+            content.add(pw.Table(border: pw.TableBorder.all(), children: tableRows));
+          }
+        } else {
+          print('Data is null');
         }
-        // Add the remaining rows if any
+
         if (tableRows.isNotEmpty) {
           content.add(pw.Table(border: pw.TableBorder.all(), children: tableRows));
         }
         return content;
       },
-
     ),
   );
   return doc.save();
 }
-
 
 pw.Widget _buildTableCell(String text) {
   return pw.Container(
@@ -221,19 +272,16 @@ pw.Widget _buildTableDataCell(String text) {
 
 
 
-Future<pw.PageTheme>_myPageTheme(PdfPageFormat format)async
-{
-
-  final logoImage=pw.MemoryImage((await rootBundle.load('lib/images/Star-Tech.png')).buffer.asUint8List());
-
+Future<pw.PageTheme> _myPageTheme(PdfPageFormat format) async {
+  final logoImage = pw.MemoryImage((await rootBundle.load('lib/images/Star-Tech.png')).buffer.asUint8List());
 
   return pw.PageTheme(
     margin: const pw.EdgeInsets.symmetric(
-      horizontal: 1*PdfPageFormat.cm, vertical: 0.5*PdfPageFormat.cm
+      horizontal: 1 * PdfPageFormat.cm, vertical: 0.5 * PdfPageFormat.cm,
     ),
-      textDirection: pw.TextDirection.ltr,
-      orientation: pw.PageOrientation.portrait,
-      buildBackground: (final context)=>pw.FullPage(
+    textDirection: pw.TextDirection.ltr,
+    orientation: pw.PageOrientation.portrait,
+    buildBackground: (final context) => pw.FullPage(
       ignoreMargins: true,
       child: pw.Watermark(
         angle: 7,
@@ -243,19 +291,16 @@ Future<pw.PageTheme>_myPageTheme(PdfPageFormat format)async
             alignment: pw.Alignment.center,
             logoImage,
             fit: pw.BoxFit.cover,
-          )
-        )
-      )
-    )
+          ),
+        ),
+      ),
+    ),
   );
 }
 
-
-
-
 Future<void> saveAsFile(
     BuildContext context,
-    printing.LayoutCallback build, // Use printing.LayoutCallback
+    printing.LayoutCallback build,
     PdfPageFormat pageFormat,
     ) async {
   final bytes = await build(pageFormat);
@@ -268,14 +313,14 @@ Future<void> saveAsFile(
   await OpenFile.open(file.path);
 }
 
-void showPrintedToast(final BuildContext context){
+void showPrintedToast(final BuildContext context) {
   ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Document Printed successfully"))
+    SnackBar(content: Text("Document Printed successfully")),
   );
 }
 
-void showShearedToast(final BuildContext context){
+void showShearedToast(final BuildContext context) {
   ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Document Sheared successfully"))
+    SnackBar(content: Text("Document Sheared successfully")),
   );
 }
