@@ -9,7 +9,7 @@ class Assets {
   static const String coustomWidgetCustomDatePickerField = 'lib/Coustom_widget/CustomDatePickerField.dart';
   static const String coustomWidgetCustomDropdownField = 'lib/Coustom_widget/CustomDropdownField.dart';
   static const String coustomWidgetCustomDropdownTextField = 'lib/Coustom_widget/CustomDropdownTextField.dart';
-  static const String coustomWidgetCustomEditTable = 'lib/Coustom_widget/custom_edit_table.dart';
+  static const String coustomWidgetCustomEditTable = 'lib/Coustom_widget/custom_edit_table_sup.dart';
   static const String coustomWidgetCustomRecommendedWedget = 'lib/Coustom_widget/custom_recommended_wedget.dart';
   static const String coustomWidgetCustomTextField2 = 'lib/Coustom_widget/custom_text_field2.dart';
   static const String coustomWidgetNeumorphicButton = 'lib/Coustom_widget/neumorphic_button.dart';
@@ -19,9 +19,9 @@ class Assets {
   static const String imagesA2 = 'lib/images/A2.png';
   static const String imagesA3 = 'lib/images/A3.png';
   static const String imagesA4 = 'lib/images/A4.png';
-  static const String imagesA5 = 'lib/images/A5.png';
-  static const String imagesA6 = 'lib/images/A6.png';
-  static const String imagesA7 = 'lib/images/A7.png';
+  static const String imagesA5 = 'lib/images/A6.png';
+  static const String imagesA6 = 'lib/images/A7.png';
+  static const String imagesA7 = 'lib/images/A8.png';
   static const String imagesAppointmentLetter = 'lib/images/Appointment Letter.docx';
   static const String imagesForeBgIcon = 'lib/images/ForeBgIcon.png';
   static const String imagesHorizintalLogo = 'lib/images/Horizintal_Logo.png';

@@ -58,6 +58,10 @@ dependencies:
   path_provider:
   open_file:
   printing:
+  geolocator:
+  connectivity:
+  geocoding:
+  google_maps_flutter:
 
 dev_dependencies:
   flutter_test:

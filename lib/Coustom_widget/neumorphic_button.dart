@@ -52,28 +52,31 @@ class _NeumorphicButtonState extends State<NeumorphicButton> {
             ),
           ],
         ),
-        child: SizedBox(
-          height: 100,
-          width: 100,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                height: 60,
-                width: 60,
-                child: Image.asset(widget.imagePath),
-              ),
-              SizedBox(height: 8),
-              Text(
-                widget.buttonText,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+        child: Center(
+          child: SizedBox(
+            height: 120,
+            width: 140,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  height: 70,
+                  width: 70,
+                  child: Image.asset(widget.imagePath),
                 ),
-              ),
-            ],
+
+                Text(
+                  widget.buttonText,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -15,9 +15,37 @@ import 'package:http/http.dart' as http;
 
 ///api integration
 
+/*
+Future<Map<String, dynamic>> getIndividualInOutReport(String empCode, String companyID, String fromDate, String endDate) async {
+  var headers = {
+
+    'Authorization': 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==',
+  };
+
+  var url = Uri.parse('http://175.29.186.86:7021/api/v1/atten/get-individual-inout-report/$empCode/$companyID/$fromDate/$endDate');
+
+  var response = await http.get(url, headers: headers);
+
+  if (response.statusCode == 200) {
+    var jsonResponse = json.decode(response.body);
+    if (jsonResponse is Map<String, dynamic>) {
+// Save data to shared preferences
+      saveDataToSharedPreferences(jsonResponse);
+      return jsonResponse;
+    }
+  } else {
+    print('Request failed with status: ${response.statusCode}');
+  }
+
+  return {}; // or throw an exception
+}
+*/
+
+
+
 Future<dynamic> getIndividualInOutReport(String empCode, String companyID, String fromDate, String endDate) async {
   var headers = {
-    'accept': '*/*',
+
     'Authorization': 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==',
   };
 
@@ -55,13 +83,25 @@ void saveDataToSharedPreferences( data) async {
 
 Future<Uint8List> generatePdf(final PdfPageFormat format, String empCode,
     String companyID, String fromDate, String endDate) async {
+
+
   List individualInOutReport = await getIndividualInOutReport(empCode, companyID, fromDate, endDate);
+
+/*  Map<String, dynamic> individualInOutReport = await getIndividualInOutReport(empCode, companyID, fromDate, endDate);
+
+  if (individualInOutReport.isEmpty) {
+    // Handle the case where the API response is empty.
+    print('Data is null');
+    return Uint8List(0); // or throw an exception
+  }*/
+
+
   print("individualInOutReport: $individualInOutReport");
   final doc = pw.Document(
     title: 'Star Tech',
   );
 
-  final logoImage = pw.MemoryImage((await rootBundle.load('lib/images/Star-Tech.png')).buffer.asUint8List());
+  final logoImage = pw.MemoryImage((await rootBundle.load('lib/images/DailyStar.png')).buffer.asUint8List());
   final pageTheme = await _myPageTheme(format);
 
   doc.addPage(
@@ -71,8 +111,8 @@ Future<Uint8List> generatePdf(final PdfPageFormat format, String empCode,
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
-            pw.Text('Start Tech & Engineering LTD.', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20)),
-            pw.Text('6th floor, 28 Kazi Nazrul Islam Ave, Navana Zohura Square, Dhaka 1000', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+            pw.Text('The Daily Star.', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20)),
+            pw.Text('64-65, Kazi Nazrul Islam Avenue, Dhaka-1215', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.Text('Employee Monthly In & Out Report', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
           ],
         ),
@@ -214,7 +254,7 @@ Future<Uint8List> generatePdf(final PdfPageFormat format, String empCode,
                 border: pw.TableBorder.all(),
                 columnWidths: {
                   0: const pw.FixedColumnWidth(20), // SL.
-                  1: const pw.FlexColumnWidth(),     // Date
+                  1: const pw.FlexColumnWidth(1.2),     // Date
                   2: const pw.FlexColumnWidth(),     // Day
                   3: const pw.FlexColumnWidth(),     // In Time
                   4: const pw.FlexColumnWidth(),     // Out Time
@@ -273,7 +313,7 @@ pw.Widget _buildTableDataCell(String text) {
 
 
 Future<pw.PageTheme> _myPageTheme(PdfPageFormat format) async {
-  final logoImage = pw.MemoryImage((await rootBundle.load('lib/images/Star-Tech.png')).buffer.asUint8List());
+  final logoImage = pw.MemoryImage((await rootBundle.load('lib/images/DailyStar.png')).buffer.asUint8List());
 
   return pw.PageTheme(
     margin: const pw.EdgeInsets.symmetric(
@@ -286,7 +326,7 @@ Future<pw.PageTheme> _myPageTheme(PdfPageFormat format) async {
       child: pw.Watermark(
         angle: 7,
         child: pw.Opacity(
-          opacity: 0.4,
+          opacity: 0.1,
           child: pw.Image(
             alignment: pw.Alignment.center,
             logoImage,

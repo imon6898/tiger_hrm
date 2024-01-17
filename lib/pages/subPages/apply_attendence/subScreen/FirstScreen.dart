@@ -35,7 +35,7 @@ class _ArriveOfficeTimeState extends State<ArriveOfficeTime> {
                             children: [
                               Text('Date: ',style: TextStyle(fontSize: 20,fontFamily: 'Readex Pro',fontWeight: FontWeight.w500)),
                               Text(
-                                '${now.day}-${now.month}-${now.year}',
+                                '${DateFormat('dd-MMM-yyyy').format(now)}',
                                 style: TextStyle(fontSize: 25,fontFamily: 'Readex Pro',fontWeight: FontWeight.w500),textAlign: TextAlign.left,
 
                               ),
@@ -112,11 +112,11 @@ class _ArriveOfficeTimeState extends State<ArriveOfficeTime> {
                       Padding(
                         padding:
                         const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
-                        child: Icon(Icons.restart_alt),
+                        child: Icon(Icons.access_time, color: Colors.white),
                       ),
                       Text(
-                        'Save Attendance',
-                        style: TextStyle(fontSize: 20),
+                        'Check IN',
+                        style: TextStyle(fontSize: 20, color: Colors.white),
                       )
                     ]),
                   ),

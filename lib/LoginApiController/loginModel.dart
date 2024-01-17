@@ -1,49 +1,79 @@
-import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
+
+
+import 'dart:convert';
+
+LoginModel loginModelFromJson(String str) => LoginModel.fromJson(json.decode(str));
+
+String loginModelToJson(LoginModel data) => json.encode(data.toJson());
 
 class LoginModel {
-  String? token;
-  int? loginID;
-  String? userName;
-  String? loginPassword;
-  String? empCode;
-  String? isActive;
-  int? companyID;
-  String? companyName;
+  String token;
+  int loginId;
+  String userName;
+  String empName;
+  String loginPassword;
+  int userTypeId;
+  String empCode;
+  String isActive;
+  int companyId;
+  String companyName;
+  int gender;
+  int gradeValue;
+  String department;
+  String reportTo;
+  dynamic recommendTo;
 
   LoginModel({
-    this.token,
-    this.loginID,
-    this.userName,
-    this.loginPassword,
-    this.empCode,
-    this.isActive,
-    this.companyID,
-    this.companyName,
-    required LoginController loginController,
+    required this.token,
+    required this.loginId,
+    required this.userName,
+    required this.empName,
+    required this.loginPassword,
+    required this.userTypeId,
+    required this.empCode,
+    required this.isActive,
+    required this.companyId,
+    required this.companyName,
+    required this.gender,
+    required this.gradeValue,
+    required this.department,
+    required this.reportTo,
+    required this.recommendTo,
   });
 
-  LoginModel.fromJson(Map<String, dynamic> json) {
-    token = json['token'];
-    loginID = json['loginID'];
-    userName = json['userName'];
-    loginPassword = json['loginPassword'];
-    empCode = json['empCode'];
-    isActive = json['isActive'];
-    companyID = json['companyID'];
-    companyName = json['companyName'];
-  }
+  factory LoginModel.fromJson(Map<String, dynamic> json) => LoginModel(
+    token: json["token"],
+    loginId: json["loginID"],
+    userName: json["userName"],
+    empName: json["empName"],
+    loginPassword: json["loginPassword"],
+    userTypeId: json["userTypeId"],
+    empCode: json["empCode"],
+    isActive: json["isActive"],
+    companyId: json["companyID"],
+    companyName: json["companyName"],
+    gender: json["gender"],
+    gradeValue: json["gradeValue"],
+    department: json["department"],
+    reportTo: json["reportTo"],
+    recommendTo: json["recommendTo"],
+  );
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['token'] = this.token;
-    data['loginID'] = this.loginID;
-    data['userName'] = this.userName;
-    data['loginPassword'] = this.loginPassword;
-    data['empCode'] = this.empCode;
-    data['isActive'] = this.isActive;
-    data['companyID'] = this.companyID;
-    data['companyName'] = this.companyName;
-    return data;
-  }
+  Map<String, dynamic> toJson() => {
+    "token": token,
+    "loginID": loginId,
+    "userName": userName,
+    "empName": empName,
+    "loginPassword": loginPassword,
+    "userTypeId": userTypeId,
+    "empCode": empCode,
+    "isActive": isActive,
+    "companyID": companyId,
+    "companyName": companyName,
+    "gender": gender,
+    "gradeValue": gradeValue,
+    "department": department,
+    "reportTo": reportTo,
+    "recommendTo": recommendTo,
+  };
 }
-

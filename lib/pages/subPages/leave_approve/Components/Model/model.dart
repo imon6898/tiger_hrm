@@ -15,7 +15,7 @@ class LeaveDatafor{
   final int leaveTypedID; // Corrected naming here
   final String unAccepteDuration;
   final String referanceEmpcode;
-  final String grandtype;
+  final int grandtype;
   final String appType;
   final int companyID;
   final String applyTo;

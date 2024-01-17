@@ -5,6 +5,7 @@ import 'dart:core';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:dropdown_textfield/dropdown_textfield.dart';
+import 'package:intl/intl.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/coustom_text%20field.dart';
 import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
 import 'package:tiger_erp_hrm/LoginApiController/loginModel.dart';
@@ -12,6 +13,7 @@ import 'package:tiger_erp_hrm/test2.dart';
 
 import '../../../Coustom_widget/neumorphic_button.dart';
 import '../approve_attend.dart';
+import 'components/getLeaveInfo_model.dart';
 
 
 
@@ -21,12 +23,16 @@ class LeaveApplyPage extends StatefulWidget {
   final String empCode;
   final String companyID;
   final String companyName;
+  final int gradeValue;
+  final int gender;
   //final String token;
   const LeaveApplyPage({Key? key,
     required this.userName,
     required this.empCode,
     required this.companyID,
     required this.companyName,
+    required this.gradeValue,
+    required this.gender,
     //required this.token,
   }) : super(key: key);
 
@@ -35,6 +41,16 @@ class LeaveApplyPage extends StatefulWidget {
 }
 List<String> options = ['Active', 'Inactive'];
 class _LeaveApplyPageState extends State<LeaveApplyPage> {
+
+  bool isFetchingDataGetLeaveInfo = true;
+  List<GetLeaveInfoModels1> getLeaveInfoLists = [];
+  List<GetLeaveInfoStatusModels3> getLeaveInfoStatus3 = [];
+
+  SingleValueDropDownController itemController = SingleValueDropDownController();
+  FocusNode searchFocusNode = FocusNode();
+  FocusNode textFieldFocusNode = FocusNode();
+  List<DropDownValueModel> periodList = [];
+  late String selectedCategoryId = "";
 
   TextEditingController employeeIdController = TextEditingController();
   TextEditingController employeeNameController = TextEditingController();
@@ -56,20 +72,31 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
   List<Map<String, dynamic>>? leaveTypes;
   bool isExpandedYourDetails = false;
   bool isExpandedApplyTo = false;
+  bool isExpandedApplyToSup = false;
   bool isExpandedDutieswillbeperformedby = false;
   bool isExpandedApplication = false;
+  List<GetLeaveInfoModel> getLeaveInfoList = [];
 
 
   TextEditingController applyToEmployeeIdController = TextEditingController();
   TextEditingController applyToEmployeeNameController = TextEditingController();
   TextEditingController applyToEmployeedesignationController = TextEditingController();
 
+  TextEditingController applyToEmployeeIdSupController = TextEditingController();
+  TextEditingController applyToEmployeeNameSupController = TextEditingController();
+  TextEditingController applyToEmployeedesignationSupController = TextEditingController();
+
   TextEditingController dutiesEmployeeIdController = TextEditingController();
   TextEditingController dutiesEmployeeNameController = TextEditingController();
   TextEditingController dutiesEmployeeDesignationController = TextEditingController();
 
 
-
+  DateTime? parseApiDate(String dateString) {
+    if (dateString == "0001-01-01T00:00:00") {
+      return null; // Return null for the special case
+    }
+    return DateTime.parse(dateString);
+  }
 
 
   void fetchEmployeeData() async {
@@ -80,7 +107,8 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
 
     var response = await http.get(
       Uri.parse(
-          '${BaseUrl.baseUrl}/api/v1/GetEmployment/${widget.empCode}/${widget.companyID}'),
+        '${BaseUrl.baseUrl}/api/${v.v1}/GetEmployment/${widget.empCode}/${widget.companyID}',
+      ),
       headers: headers,
     );
 
@@ -90,14 +118,18 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
         // Assuming you want the first item from the list
         Map<String, dynamic> firstItem = data[0];
         setState(() {
-          employeeIdController.text = firstItem['empCode'];
-          employeeNameController.text = firstItem['empName'];
-          designationController.text = firstItem['designation'];
-          departmentController.text = firstItem['department'];
+          employeeIdController.text = firstItem['empCode'] ?? '';
+          employeeNameController.text = firstItem['empName'] ?? '';
+          designationController.text = firstItem['designation'] ?? '';
+          departmentController.text = firstItem['department'] ?? '';
 
-          applyToEmployeeIdController.text = firstItem['reportTo'];
-          applyToEmployeeNameController.text = firstItem['reportToEmpName'];
-          applyToEmployeedesignationController.text = firstItem['reportToDesignation'];
+          applyToEmployeeIdController.text = firstItem['reportTo'] ?? '';
+          applyToEmployeeNameController.text = firstItem['reportToEmpName'] ?? '';
+          applyToEmployeedesignationController.text = firstItem['reportToDesignation'] ?? '';
+
+          applyToEmployeeIdSupController.text = firstItem['recommendTo'] ?? '';
+          applyToEmployeeNameSupController.text = firstItem['recommendToEmpName'] ?? '';
+          applyToEmployeedesignationSupController.text = firstItem['recommendToDesignation'] ?? '';
         });
       }
     } else {
@@ -105,8 +137,9 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
     }
   }
 
+
   Future<void> submitLeaveApplication(int leaveTypeId) async {
-    final uri = Uri.parse('${BaseUrl.baseUrl}/api/v1/leave/leave-apply');
+    final uri = Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/leave/leave-apply');
     final headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==',
@@ -124,7 +157,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
       "unAccepteDuration": 0,
       "referanceEmpcode": dutiesEmployeeIdController.text,
       "grandtype": "string",
-      "yyyymmdd": _applyDateController.text,
+      //"yyyymmdd": _applyDateController.text,
       "withpay": currentOptions == 'Active' ? "1" : "0",
       "appType": "0",
       "companyID": widget.companyID,
@@ -132,8 +165,9 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
       "reason": _reasonController.text,
       "emgContructNo": _emergencyContactNoController.text,
       "emgAddress": _emergencyAddressController.text,
-      "userName": employeeNameController.text,
-      "authorityEmpcode": "0"
+      //"userName": employeeNameController.text,
+      //"authorityEmpcode": "0",
+      "recommendTo": applyToEmployeeIdSupController.text,
 
       // "id": 0,
       // "empCode": "465",//employeeIdController.text,
@@ -155,6 +189,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
       // "userName": employeeNameController.text,
       // "authorityEmpcode": "0"
     };
+    print('Request Body: ${requestBody}');
 
     try {
       final response = await http.post(
@@ -211,7 +246,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
 
     var response = await http.get(
       Uri.parse(
-          '${BaseUrl.baseUrl}/api/v1/GetEmployment/$empCode/${widget.companyID}'),
+          '${BaseUrl.baseUrl}/api/${v.v1}/GetEmployment/$empCode/${widget.companyID}'),
       headers: headers,
     );
 
@@ -266,19 +301,24 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
 
   void _updateLeaveDuration() {
     if (fromDate != null && endDate != null) {
-      final duration = endDate!.difference(fromDate!).inDays;
+      final duration = endDate!.difference(fromDate!).inDays + 1;
       updateLeaveDuration.text = '$duration';
     } else {
       updateLeaveDuration.text = '';
     }
   }
 
+
+
+
+
+
   String? selectedLeaveType;
   bool isDropdownVisible = false;
 
   Future<void> fetchLeaveTypes() async {
     try {
-      var url = '${BaseUrl.baseUrl}/api/v1/leave/get-leave-type/2/1';
+      var url = '${BaseUrl.baseUrl}/api/${v.v1}/leave/get-leave-type/${widget.gradeValue}/${widget.gender}';
       var response = await http.get(
         Uri.parse(url),
         headers: {
@@ -300,12 +340,192 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
       print('Error: $e');
     }
   }
+
+  Future<void> fetchGetLeaveInfo() async {
+    try {
+      var headers = {
+        'Authorization': BaseUrl.authorization,
+      };
+      var request = http.Request(
+        'GET',
+        Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/leave/Get-Leave-Info/${widget.empCode}/${widget.companyID}'),
+      );
+      request.headers.addAll(headers);
+
+      http.StreamedResponse response = await request.send();
+
+      setState(() {
+        isFetchingDataGetLeaveInfo = true;
+      });
+
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        print("this is get Data from:: $responseBody");
+
+        final List<dynamic> data = json.decode(responseBody);
+
+        setState(() {
+          getLeaveInfoList = data.map((item) {
+            return GetLeaveInfoModel(
+              id: item['id'] ?? 0,
+              applyDate: item['applicationDate'] ?? '',
+              startDate: item['startDate'] ?? '',
+              endDate: item['endDate'] ?? '',
+              days: item['accepteDuration'].toString(),
+            );
+          }).toList();
+          isFetchingDataGetLeaveInfo = false;
+        });
+      } else {
+        isFetchingDataGetLeaveInfo = false;
+        throw Exception('Failed to load data from the API');
+      }
+    } catch (error) {
+      print('Error fetching data: $error');
+      // Handle the error appropriately, e.g., show a snackbar or display an error message.
+    }
+  }
+
+  Future<void> fetchGetLeaveInfo1(String selectedCategoryId) async {
+    try {
+      var headers = {
+        'Authorization': BaseUrl.authorization,
+      };
+      var request = http.Request(
+        'GET',
+        Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/leave/Get-Leave-Status/${widget.empCode}/${widget.companyID}/$selectedCategoryId'),
+      );
+      request.headers.addAll(headers);
+
+      http.StreamedResponse response = await request.send();
+
+      setState(() {
+        isFetchingDataGetLeaveInfo = true;
+      });
+
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        print("this is get Data from:: $responseBody");
+
+        final List<dynamic> dataGetLeaveInfo = json.decode(responseBody);
+
+        setState(() {
+          getLeaveInfoLists = dataGetLeaveInfo.map((item) {
+            return GetLeaveInfoModels1(
+              typeName: item['typeName'] ?? '',
+              tOtalLeave: item['tOtalLeave'].toString(),
+              maxDays: item['maxDays'].toString(),
+              accepteDuration: item['accepteDuration'].toString(),
+              balance: item['balance'].toString(),
+            );
+          }).toList();
+          isFetchingDataGetLeaveInfo = false;
+        });
+      } else {
+        isFetchingDataGetLeaveInfo = false;
+        throw Exception('Failed to load dataGetLeaveInfo from the API');
+      }
+    } catch (error) {
+      print('Error fetching dataGetLeaveInfo: $error');
+      // Handle the error appropriately, e.g., show a snackbar or display an error message.
+    }
+  }
+
+  Future<void> fetchPeriodList() async {
+    var headers = {
+      'Authorization': BaseUrl.authorization,
+    };
+
+    var request = http.Request(
+      'GET',
+      Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/salary/get-period-list/1'),
+    );
+    request.headers.addAll(headers);
+
+    try {
+      http.Response response = await http.Response.fromStream(
+        await http.Client().send(request),
+      );
+      if (response.statusCode == 200) {
+        // Parse the JSON response
+        List<dynamic> data = jsonDecode(response.body);
+
+        // Extract periodName and id from each item in the response
+        List<DropDownValueModel> fetchedList = data
+            .map((item) => DropDownValueModel(
+          name: item['periodName'],
+          value: item['id'].toString(),
+        ))
+            .toList();
+
+        setState(() {
+          periodList = fetchedList;
+        });
+      } else {
+        print('Failed to fetch data. Status code: ${response.statusCode}');
+        print(response.reasonPhrase);
+      }
+    } catch (error) {
+      print('Error during API request: $error');
+    }
+  }
+
+  Future<void> fetchGetLeaveInfoStatus3() async {
+    try {
+      var headers = {
+        'Authorization': BaseUrl.authorization,
+      };
+      var request = http.Request(
+        'GET',
+        Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/leave/getLeaveInfoStatus/${widget.empCode}/${widget.companyID}'),
+      );
+      request.headers.addAll(headers);
+
+      http.StreamedResponse response = await request.send();
+
+      setState(() {
+        isFetchingDataGetLeaveInfo = true;
+      });
+
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        print("this is get Data from:: $responseBody");
+
+        final List<dynamic> dataGetLeaveInfo = json.decode(responseBody);
+
+        setState(() {
+          getLeaveInfoStatus3 = dataGetLeaveInfo.map((item) {
+            return GetLeaveInfoStatusModels3(
+              typeName: item['typeName'] ?? '',
+              accepteDuration: item['accepteDuration'].toString(),
+              remarks: item['remarks'] ?? '',
+              empName: item['empName'] ?? '',
+              status: item['status'] ?? '',
+            );
+          }).toList();
+          isFetchingDataGetLeaveInfo = false;
+        });
+      } else {
+        isFetchingDataGetLeaveInfo = false;
+        throw Exception('Failed to load dataGetLeaveInfo from the API');
+      }
+    } catch (error) {
+      print('Error fetching dataGetLeaveInfo: $error');
+      // Handle the error appropriately, e.g., show a snackbar or display an error message.
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     fetchLeaveTypes();
 
     fetchEmployeeData();
+    fetchGetLeaveInfo();
+
+    fetchGetLeaveInfo1(selectedCategoryId);
+    fetchPeriodList();
+    fetchGetLeaveInfoStatus3();
 
     // Set _applyDateController to today's date when the page is loaded
     _applyDateController.text = DateTime.now().toString().split(" ")[0];
@@ -322,266 +542,331 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
   @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
-    return WillPopScope(
-      onWillPop: () async {
-        // Perform custom logic here if needed
-        // Return true to allow the back button, or false to prevent it
-        Navigator.pop(context);
-        return false;
-      },
-      child: Scaffold(
-        backgroundColor: Color(0xFFDBDDE1),
-        appBar: AppBar(
-          backgroundColor: const Color(0xff162b4a),
-          leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white,),
-          ),
-          title: const Text(
-            style:
-                TextStyle(color: Colors.white, fontSize: 30, fontFamily: 'Kanit'),
-            'Leave Apply',
-            textAlign: TextAlign.center,
-          ),
+    return Scaffold(
+      backgroundColor: Color(0xffe9f0fd),
+      appBar: AppBar(
+        backgroundColor: const Color(0xff162b4a),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white,),
         ),
-        body: SingleChildScrollView(
-            child: Container(
-                color: Color(0xFFDBDDE1),
-              child: Column(
-               children: [
-                  SizedBox(height: 10,),
+        title: const Text(
+          style:
+              TextStyle(color: Colors.white, fontSize: 30, fontFamily: 'Kanit'),
+          'Leave Apply',
+          textAlign: TextAlign.center,
+        ),
+    ),
+      body: SingleChildScrollView(
+          child: Container(
+            color: Color(0xfff7f9fd),
+            child: Column(
+             children: [
+                SizedBox(height: 10,),
 
-                 GestureDetector(
-                   onTap: () {
-                     setState(() {
-                       isExpandedYourDetails = !isExpandedYourDetails;
-                     });
-                   },
-                   child: Padding(
-                     padding: EdgeInsets.only(left: 10, top: 10, right: 10),
-                     child: Container(
-                       height: 50,
-                       width: MediaQuery.of(context).size.width,
-                       decoration: BoxDecoration(
-                         border: Border.all(width: 2),
-                         borderRadius: BorderRadius.circular(10),
-                       ),
-
-                       child: Center(
-                         child: Row(
-                           children: [
-                             Expanded(
-                               child: Divider(
-                                 thickness: 1.5,
-                               ),
-                             ),
-                             Padding(
-                               padding: const EdgeInsets.all(8.0),
-                               child: Text('Your Details',style: TextStyle(fontSize: 16)),
-                             ),
-                             Expanded(
-                               child: Divider(
-                                 thickness: 1.5,
-                               ),
-                             ),
-                           ],
-                         ),
-                       ),
-                     ),
-                   ),
-                 ),
-
-                 Padding(
-                   padding: const EdgeInsets.only(top: 8.0),
-                   child: AnimatedContainer(
-                     //color: Colors.yellow,
-                     duration: Duration(milliseconds: 700),
-                     height: isExpandedYourDetails ? 420 : 0,
+               GestureDetector(
+                 onTap: () {
+                   setState(() {
+                     isExpandedYourDetails = !isExpandedYourDetails;
+                   });
+                 },
+                 child: Padding(
+                   padding: EdgeInsets.only(left: 10, top: 10, right: 10),
+                   child: Container(
+                     height: 50,
                      width: MediaQuery.of(context).size.width,
-                     child: isExpandedYourDetails
-                         ? SingleChildScrollView(
-                           child: Column(
-                                                  children: [
-                           
-                           CustomTextField(
-                             controller: employeeIdController,
-                             label: 'Employee ID',
-                             disableOrEnable: false,
-                             hintText: '',
-                           
-                           ),
-                           
-                           CustomTextField(
-                             controller: employeeNameController,
-                             label: 'Employee Name',
-                             disableOrEnable: false,
-                             hintText: '',
-                           
-                           ),
-                           CustomTextField(
-                             controller: designationController,
-                             label: 'Designation',
-                             disableOrEnable: false,
-                             hintText: '',
-                           
-                           ),
-                           
-                           CustomTextField(
-                             controller: departmentController,
-                             label: 'Department',
-                             disableOrEnable: false,
-                             hintText: '',
-                           
-                           ),
-                           
-                                                  ],
-                                                ),
-                         )
-                         : null,
-                   ),
-                 ),
-
-
-                 // GestureDetector(
-                 //   onTap: (){
-                 //     Navigator.push(context, MaterialPageRoute(builder: (context) => LeaveDetails()));
-                 //   },
-                 //     child: Text("imon")
-                 // ),
-
-                 GestureDetector(
-                   onTap: () {
-                     setState(() {
-                       isExpandedApplyTo  = !isExpandedApplyTo ;
-                     });
-                   },
-                   child: Padding(
-                     padding: EdgeInsets.only(left: 10, top: 10, right: 10),
-                     child: Container(
-                       height: 50,
-                       width: MediaQuery.of(context).size.width,
-                       decoration: BoxDecoration(
-                         border: Border.all(width: 2),
-                         borderRadius: BorderRadius.circular(10),
-                       ),
-                       child: Center(
-                         child: Row(
-                           children: [
-                             Expanded(
-                               child: Divider(
-                                 thickness: 1.5,
-                               ),
-                             ),
-                             Padding(
-                               padding: const EdgeInsets.all(8.0),
-                               child: Text('Apply To',style: TextStyle(fontSize: 16)),
-                             ),
-                             Expanded(
-                               child: Divider(
-                                 thickness: 1.5,
-                               ),
-                             ),
-                           ],
-                         ),
-                       ),
+                     decoration: BoxDecoration(
+                       border: Border.all(width: 2),
+                       borderRadius: BorderRadius.circular(10),
                      ),
-                   ),
-                 ),
 
-                 Padding(
-                   padding: const EdgeInsets.only(top: 8.0),
-                   child: AnimatedContainer(
-                     //color: Colors.yellow,
-                     duration: Duration(milliseconds: 700),
-                     height: isExpandedApplyTo  ? 320 : 0,
-                     width: MediaQuery.of(context).size.width,
-                     child: isExpandedApplyTo
-                         ? SingleChildScrollView(
-                       child: Column(
+                     child: Center(
+                       child: Row(
                          children: [
-
-                           CustomTextField(
-                             controller: applyToEmployeeIdController,
-                             label: 'Employee ID',
-                             disableOrEnable: false,
-                             hintText: '',
-
+                           Expanded(
+                             child: Divider(
+                               thickness: 1.5,
+                             ),
                            ),
-                           CustomTextField(
-                             controller: applyToEmployeeNameController,
-                             label: 'Employee Name',
-                             disableOrEnable: false,
-                             hintText: '',
-
+                           Padding(
+                             padding: const EdgeInsets.all(8.0),
+                             child: Text('Your Details',style: TextStyle(fontSize: 16)),
                            ),
-                           CustomTextField(
-                             controller: applyToEmployeedesignationController,
-                             label: 'Employee Designation',
-                             disableOrEnable: false,
-                             hintText: '',
-
+                           Expanded(
+                             child: Divider(
+                               thickness: 1.5,
+                             ),
                            ),
-
                          ],
                        ),
-                     )
-                         : null,
+                     ),
                    ),
                  ),
+               ),
 
+               Padding(
+                 padding: const EdgeInsets.only(top: 8.0),
+                 child: AnimatedContainer(
+                   //color: Colors.yellow,
+                   duration: Duration(milliseconds: 700),
+                   height: isExpandedYourDetails ? 420 : 0,
+                   width: MediaQuery.of(context).size.width,
+                   child: isExpandedYourDetails
+                       ? SingleChildScrollView(
+                         child: Column(
+                                                children: [
 
+                         CustomTextField(
+                           controller: employeeIdController,
+                           label: 'Employee ID',
+                           disableOrEnable: false,
+                           hintText: '',
 
-                 GestureDetector(
-                   onTap: () {
-                     setState(() {
-                       isExpandedApplication  = !isExpandedApplication ;
-                     });
-                   },
-                   child: Padding(
-                     padding: EdgeInsets.only(left: 10, top: 10, right: 10),
-                     child: Container(
-                       height: 50,
-                       width: MediaQuery.of(context).size.width,
-                       decoration: BoxDecoration(
-                         border: Border.all(width: 2),
-                         borderRadius: BorderRadius.circular(10),
-                       ),
-                       child: Center(
-                         child: Row(
-                           children: [
-                             Expanded(
-                               child: Divider(
-                                 thickness: 1.5,
-                               ),
-                             ),
-                             Padding(
-                               padding: const EdgeInsets.all(8.0),
-                               child: Text('Application',style: TextStyle(fontSize: 16)),
-                             ),
-                             Expanded(
-                               child: Divider(
-                                 thickness: 1.5,
-                               ),
-                             ),
-                           ],
                          ),
+
+                         CustomTextField(
+                           controller: employeeNameController,
+                           label: 'Employee Name',
+                           disableOrEnable: false,
+                           hintText: '',
+
+                         ),
+                         CustomTextField(
+                           controller: designationController,
+                           label: 'Designation',
+                           disableOrEnable: false,
+                           hintText: '',
+
+                         ),
+
+                         CustomTextField(
+                           controller: departmentController,
+                           label: 'Department',
+                           disableOrEnable: false,
+                           hintText: '',
+
+                         ),
+
+                                                ],
+                                              ),
+                       )
+                       : null,
+                 ),
+               ),
+
+
+               GestureDetector(
+                 onTap: () {
+                   setState(() {
+                     isExpandedApplyToSup  = !isExpandedApplyToSup ;
+                   });
+                 },
+                 child: Padding(
+                   padding: EdgeInsets.only(left: 10, top: 10, right: 10),
+                   child: Container(
+                     height: 50,
+                     width: MediaQuery.of(context).size.width,
+                     decoration: BoxDecoration(
+                       border: Border.all(width: 2),
+                       borderRadius: BorderRadius.circular(10),
+                     ),
+                     child: Center(
+                       child: Row(
+                         children: [
+                           Expanded(
+                             child: Divider(
+                               thickness: 1.5,
+                             ),
+                           ),
+                           Padding(
+                             padding: const EdgeInsets.all(8.0),
+                             child: Text('Supervisor',style: TextStyle(fontSize: 16)),
+                           ),
+                           Expanded(
+                             child: Divider(
+                               thickness: 1.5,
+                             ),
+                           ),
+                         ],
                        ),
                      ),
                    ),
                  ),
+               ),
+
+               Padding(
+                 padding: const EdgeInsets.only(top: 8.0),
+                 child: AnimatedContainer(
+                   //color: Colors.yellow,
+                   duration: Duration(milliseconds: 700),
+                   height: isExpandedApplyToSup  ? 320 : 0,
+                   width: MediaQuery.of(context).size.width,
+                   child: isExpandedApplyToSup
+                       ? SingleChildScrollView(
+                     child: Column(
+                       children: [
+
+                         CustomTextField(
+                           controller: applyToEmployeeIdSupController,
+                           label: 'Employee ID',
+                           disableOrEnable: false,
+                           hintText: '',
+
+                         ),
+                         CustomTextField(
+                           controller: applyToEmployeeNameSupController,
+                           label: 'Employee Name',
+                           disableOrEnable: false,
+                           hintText: '',
+
+                         ),
+                         CustomTextField(
+                           controller: applyToEmployeedesignationSupController,
+                           label: 'Employee Designation',
+                           disableOrEnable: false,
+                           hintText: '',
+
+                         ),
+
+                       ],
+                     ),
+                   )
+                       : null,
+                 ),
+               ),
 
 
-                 Padding(
-                   padding: const EdgeInsets.only(top: 8.0),
-                   child: AnimatedContainer(
-                     //color: Colors.yellow,
-                     duration: Duration(milliseconds: 1000),
-                     height: isExpandedApplication  ? 970 : 0,
+               GestureDetector(
+                 onTap: () {
+                   setState(() {
+                     isExpandedApplyTo  = !isExpandedApplyTo ;
+                   });
+                 },
+                 child: Padding(
+                   padding: EdgeInsets.only(left: 10, top: 10, right: 10),
+                   child: Container(
+                     height: 50,
                      width: MediaQuery.of(context).size.width,
-                     child: isExpandedApplication
-                         ? Column(
+                     decoration: BoxDecoration(
+                       border: Border.all(width: 2),
+                       borderRadius: BorderRadius.circular(10),
+                     ),
+                     child: Center(
+                       child: Row(
+                         children: [
+                           Expanded(
+                             child: Divider(
+                               thickness: 1.5,
+                             ),
+                           ),
+                           Padding(
+                             padding: const EdgeInsets.all(8.0),
+                             child: Text('Apply To',style: TextStyle(fontSize: 16)),
+                           ),
+                           Expanded(
+                             child: Divider(
+                               thickness: 1.5,
+                             ),
+                           ),
+                         ],
+                       ),
+                     ),
+                   ),
+                 ),
+               ),
+
+               Padding(
+                 padding: const EdgeInsets.only(top: 8.0),
+                 child: AnimatedContainer(
+                   //color: Colors.yellow,
+                   duration: Duration(milliseconds: 700),
+                   height: isExpandedApplyTo  ? 320 : 0,
+                   width: MediaQuery.of(context).size.width,
+                   child: isExpandedApplyTo
+                       ? SingleChildScrollView(
+                     child: Column(
+                       children: [
+
+                         CustomTextField(
+                           controller: applyToEmployeeIdController,
+                           label: 'Employee ID',
+                           disableOrEnable: false,
+                           hintText: '',
+
+                         ),
+                         CustomTextField(
+                           controller: applyToEmployeeNameController,
+                           label: 'Employee Name',
+                           disableOrEnable: false,
+                           hintText: '',
+
+                         ),
+                         CustomTextField(
+                           controller: applyToEmployeedesignationController,
+                           label: 'Employee Designation',
+                           disableOrEnable: false,
+                           hintText: '',
+
+                         ),
+
+                       ],
+                     ),
+                   )
+                       : null,
+                 ),
+               ),
+
+               GestureDetector(
+                 onTap: () {
+                   setState(() {
+                     isExpandedApplication  = !isExpandedApplication ;
+                   });
+                 },
+                 child: Padding(
+                   padding: EdgeInsets.only(left: 10, top: 10, right: 10),
+                   child: Container(
+                     height: 50,
+                     width: MediaQuery.of(context).size.width,
+                     decoration: BoxDecoration(
+                       border: Border.all(width: 2),
+                       borderRadius: BorderRadius.circular(10),
+                     ),
+                     child: Center(
+                       child: Row(
+                         children: [
+                           Expanded(
+                             child: Divider(
+                               thickness: 1.5,
+                             ),
+                           ),
+                           Padding(
+                             padding: const EdgeInsets.all(8.0),
+                             child: Text('Application',style: TextStyle(fontSize: 16)),
+                           ),
+                           Expanded(
+                             child: Divider(
+                               thickness: 1.5,
+                             ),
+                           ),
+                         ],
+                       ),
+                     ),
+                   ),
+                 ),
+               ),
+
+               Padding(
+                 padding: const EdgeInsets.only(top: 8.0),
+                 child: AnimatedContainer(
+                   //color: Colors.yellow,
+                   duration: Duration(milliseconds: 1000),
+                   height: isExpandedApplication  ? 970 : 0,
+                   width: MediaQuery.of(context).size.width,
+                   child: isExpandedApplication
+                       ? SingleChildScrollView(
+                         child: Column(
                            children: [
 
                              Container(
@@ -690,9 +975,15 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
                                label: 'Leave Duration',
                                disableOrEnable: false,
                                hintText: fromDate != null && endDate != null
-                                   ? '${endDate!.difference(fromDate!).inDays}'
+                                   ? '${(endDate!.difference(fromDate!).inDays + 1)} ${endDate!.difference(fromDate!).inDays == 0 ? 'day' : 'days'}'
                                    : 'Leave Duration',
                              ),
+
+
+
+
+
+
 
                              CustomTextField(
                                controller: _applyDateController,
@@ -768,278 +1059,367 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
 
 
                            ],
-                         )
-                         : null,
-                   ),
-                 ),
-
-                 GestureDetector(
-                   onTap: () {
-                     setState(() {
-                       isExpandedDutieswillbeperformedby  = !isExpandedDutieswillbeperformedby ;
-                     });
-                   },
-                   child: Padding(
-                     padding: EdgeInsets.only(left: 10, top: 10, right: 10),
-                     child: Container(
-                       height: 50,
-                       width: MediaQuery.of(context).size.width,
-                       decoration: BoxDecoration(
-                         border: Border.all(width: 2),
-                         borderRadius: BorderRadius.circular(10),
-                       ),
-                       child: Center(
-                         child: Row(
-                           children: [
-                             Expanded(
-                               child: Divider(
-                                 thickness: 1.5,
-                               ),
-                             ),
-                             Padding(
-                               padding: const EdgeInsets.all(8.0),
-                               child: Text('Duties will be performed by:',style: TextStyle(fontSize: 16)),
-                             ),
-                             Expanded(
-                               child: Divider(
-                                 thickness: 1.5,
-                               ),
-                             ),
-                           ],
                          ),
-                       ),
-                     ),
-                   ),
+                       )
+                       : null,
                  ),
+               ),
 
-
-
-                 Padding(
-                   padding: const EdgeInsets.only(top: 8.0),
-                   child: AnimatedContainer(
-                     //color: Colors.yellow,
-                     duration: Duration(milliseconds: 700),
-                     height: isExpandedDutieswillbeperformedby ? 320 : 0,
+               GestureDetector(
+                 onTap: () {
+                   setState(() {
+                     isExpandedDutieswillbeperformedby  = !isExpandedDutieswillbeperformedby ;
+                   });
+                 },
+                 child: Padding(
+                   padding: EdgeInsets.only(left: 10, top: 10, right: 10),
+                   child: Container(
+                     height: 50,
                      width: MediaQuery.of(context).size.width,
-                     child: isExpandedDutieswillbeperformedby
-                         ? SingleChildScrollView(
-                       child: Column(
+                     decoration: BoxDecoration(
+                       border: Border.all(width: 2),
+                       borderRadius: BorderRadius.circular(10),
+                     ),
+                     child: Center(
+                       child: Row(
                          children: [
-
-                           CustomTextField(
-                             controller: dutiesEmployeeIdController,
-                             label: 'Duties Employee ID',
-                             disableOrEnable: true,
-                             hintText: 'Duties Employee ID',
-                             onChanged: (value){
-                               fetchDutiesEmployeeData(value);
-                             },
+                           Expanded(
+                             child: Divider(
+                               thickness: 1.5,
+                             ),
                            ),
-
-                           CustomTextField(
-                             controller: dutiesEmployeeNameController,
-                             label: 'Duties Employee Name',
-                             disableOrEnable: false,
-                             hintText: 'Duties Employee Name',
+                           Padding(
+                             padding: const EdgeInsets.all(8.0),
+                             child: Text('Duties will be performed by:',style: TextStyle(fontSize: 16)),
                            ),
-                           CustomTextField(
-                             controller: dutiesEmployeeDesignationController,
-                             label: 'Duties Employee Designation',
-                             disableOrEnable: false,
-                             hintText: 'Duties Employee Designation',
-
+                           Expanded(
+                             child: Divider(
+                               thickness: 1.5,
+                             ),
                            ),
-
                          ],
                        ),
-                     )
-                         : null,
+                     ),
                    ),
                  ),
+               ),
 
+               Padding(
+                 padding: const EdgeInsets.only(top: 8.0),
+                 child: AnimatedContainer(
+                   //color: Colors.yellow,
+                   duration: Duration(milliseconds: 700),
+                   height: isExpandedDutieswillbeperformedby ? 320 : 0,
+                   width: MediaQuery.of(context).size.width,
+                   child: isExpandedDutieswillbeperformedby
+                       ? SingleChildScrollView(
+                     child: Column(
+                       children: [
 
-                 SingleChildScrollView(
-                   scrollDirection: Axis.horizontal,
-                   child: Padding(
-                     padding: const EdgeInsets.all(10.0),
-                     child: DataTable(
-                       border: TableBorder.all(color: Colors.black), // Set border color for the entire DataTable
-                       headingRowColor: MaterialStateColor.resolveWith((states) => Colors.blue),
-                       columns: [
-                         DataColumn(label: Text('#SN')),
-                         DataColumn(label: Text('Leave Type')),
-                         DataColumn(label: Text('Total')),
-                         DataColumn(label: Text('Availed')),
-                         DataColumn(label: Text('Balance')),
-                       ],
-                       rows: List<DataRow>.generate(
-                         4,
-                             (index) => DataRow(
-                           cells: [
-                             DataCell(Text('${index + 1}')), // SN column
-                             DataCell(Text('Earn Leave')),
-                             DataCell(Text('12')),
-                             DataCell(Text('2')),
-                             DataCell(Text('10')),
-                           ],
+                         CustomTextField(
+                           controller: dutiesEmployeeIdController,
+                           label: 'Duties Employee ID',
+                           disableOrEnable: true,
+                           hintText: 'Duties Employee ID',
+                           onChanged: (value){
+                             fetchDutiesEmployeeData(value);
+                           },
                          ),
+
+                         CustomTextField(
+                           controller: dutiesEmployeeNameController,
+                           label: 'Duties Employee Name',
+                           disableOrEnable: false,
+                           hintText: 'Duties Employee Name',
+                         ),
+                         CustomTextField(
+                           controller: dutiesEmployeeDesignationController,
+                           label: 'Duties Employee Designation',
+                           disableOrEnable: false,
+                           hintText: 'Duties Employee Designation',
+
+                         ),
+
+                       ],
+                     ),
+                   )
+                       : null,
+                 ),
+               ),
+
+               Row(
+                 mainAxisAlignment: MainAxisAlignment.center,
+                 children: [
+                   Padding(
+                     padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 5, 5),
+                     child: ElevatedButton(
+                       onPressed: () {
+                         //submitLeaveApplication();
+                         if (leaveTypes != null && leaveTypes!.isNotEmpty) {
+                           int selectedLeaveTypeId = leaveTypes![0]['typeee'] as int; // Use 'as int' to specify the type
+                           submitLeaveApplication(selectedLeaveTypeId);
+                         } else {
+                           // Handle the case where leaveTypes is null or empty
+                         }
+                       },
+                       style: ElevatedButton.styleFrom(
+                         backgroundColor: Colors.green,
+                         shape: StadiumBorder(), // Background color
+                       ),
+                       child: Row(
+                         children: [
+                           Padding(
+                             padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
+                             child: Icon(Icons.save_as_outlined, color: Colors.white,),
+                           ),
+                           Text(
+                             'Apply',
+                             style: TextStyle(fontSize: 20, color: Colors.white),
+                           )
+                         ],
                        ),
                      ),
-
                    ),
-                 ),
+                   Padding(
+                     padding: const EdgeInsetsDirectional.fromSTEB(5, 0, 5, 5),
+                     child: ElevatedButton(
+                       onPressed: () {
+                         // Reset form
+                         _fromDateController.clear();
+                         _endDateController.clear();
+                         updateLeaveDuration.clear();
+                         _applyDateController.clear();
+                         _applyDateController.clear();
+                         _reasonController.clear();
+                         _emergencyContactNoController.clear();
+                         _emergencyAddressController.clear();
+                         setState(() {
+                           currentOptions = options[0]; // Reset to default value
+                           fromDate = null;
+                           endDate = null;
+                         });
 
-                 SingleChildScrollView(
-                   scrollDirection: Axis.horizontal,
-                   child: Padding(
-                     padding: const EdgeInsets.all(10.0),
-                     child: DataTable(
-                       border: TableBorder.all(color: Colors.black), // Set border color for the entire DataTable
-                       headingRowColor: MaterialStateColor.resolveWith((states) => Colors.blue),
-                       columns: [
-                         DataColumn(label: Text('#SN')),
-                         DataColumn(label: Text('Apply Date')),
-                         DataColumn(label: Text('Start Date')),
-                         DataColumn(label: Text('End Date')),
-                         DataColumn(label: Text('Duration')),
-                       ],
-                       rows: List<DataRow>.generate(
-                         3,
-                             (index) => DataRow(
-                           cells: [
-                             DataCell(Text('${index + 1}')), // SN column
-                             DataCell(Text('25 May')),
-                             DataCell(Text('18 May')),
-                             DataCell(Text('18 May')),
-                             DataCell(Text('1')),
-                           ],
-                         ),
+
+                         dutiesEmployeeIdController.clear();
+                         dutiesEmployeeNameController.clear();
+                         dutiesEmployeeDesignationController.clear();
+                       },
+                       style: ElevatedButton.styleFrom(
+                         backgroundColor: Colors.blueAccent,
+                         shape: StadiumBorder(), // Background color
+                       ),
+                       child: Row(
+                         children: [
+                           Padding(
+                             padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
+                             child: Icon(Icons.restart_alt, color: Colors.white,),
+                           ),
+                           Text(
+                             'Reset',
+                             style: TextStyle(fontSize: 20, color: Colors.white),
+                           )
+                         ],
                        ),
                      ),
-
                    ),
-                 ),
+                 ],
+               ),
 
-                 SingleChildScrollView(
-                   scrollDirection: Axis.horizontal,
-                   child: Padding(
-                     padding: const EdgeInsets.all(10.0),
-                     child: DataTable(
-                       border: TableBorder.all(color: Colors.black), // Set border color for the entire DataTable
-                       headingRowColor: MaterialStateColor.resolveWith((states) => Colors.blue),
-                       columns: [
-                         DataColumn(label: Text('#SN')),
-                         DataColumn(label: Text('Leave Name')),
-                         DataColumn(label: Text('Duration')),
-                         DataColumn(label: Text('Remark')),
-                         DataColumn(label: Text('Last Position')),
-                         DataColumn(label: Text('Status')),
-                       ],
-                       rows: List<DataRow>.generate(
-                         3,
-                             (index) => DataRow(
-                           cells: [
-                             DataCell(Text('${index + 1}')), // SN column
-                             DataCell(Text('Earn Leave')),
-                             DataCell(Text('1')),
-                             DataCell(Text('')),
-                             DataCell(Text('Md. Rashed Ali Bhyuan--Chairman')),
-                             DataCell(Text('Not Approve')),
-                           ],
-                         ),
-                       ),
-                     ),
-
-                   ),
-                 ),
-
-
-
-
-                 Row(
-                   mainAxisAlignment: MainAxisAlignment.center,
+               Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 10),
+                 child: Column(
                    children: [
-                     Padding(
-                       padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 5, 5),
-                       child: ElevatedButton(
-                         onPressed: () {
-                           //submitLeaveApplication();
-                           if (leaveTypes != null && leaveTypes!.isNotEmpty) {
-                             int selectedLeaveTypeId = leaveTypes![0]['typeee'] as int; // Use 'as int' to specify the type
-                             submitLeaveApplication(selectedLeaveTypeId);
-                           } else {
-                             // Handle the case where leaveTypes is null or empty
-                           }
-                         },
-                         style: ElevatedButton.styleFrom(
-                           backgroundColor: Colors.green,
-                           shape: StadiumBorder(), // Background color
-                         ),
-                         child: Row(
-                           children: [
-                             Padding(
-                               padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
-                               child: Icon(Icons.save_as_outlined, color: Colors.white,),
+                     Container(
+                       height: 100,
+                       padding: EdgeInsets.only(left: 0),
+                       child: Column(
+                         mainAxisAlignment: MainAxisAlignment.end,
+                         children: [
+                           DropDownTextField(
+                             textFieldDecoration: InputDecoration(
+                               contentPadding: EdgeInsets.symmetric(vertical:10,horizontal: 20),
+                               enabledBorder: OutlineInputBorder(
+                                 borderSide: BorderSide(width: 2, color: Color(0xFFBCC2C2)),
+                               ),
+                               disabledBorder: OutlineInputBorder(
+                                 borderSide: BorderSide(width: 2, color: Color(0xFFBCC2C2)),
+                               ),
+                               focusedBorder: OutlineInputBorder(
+                                 borderSide: BorderSide(width: 2, color: Colors.blueAccent),
+                               ),
+                               hintText: 'Select Month',
+                               labelText: 'Select Month',
+                               border: InputBorder.none,
                              ),
-                             Text(
-                               'Apply',
-                               style: TextStyle(fontSize: 20, color: Colors.white),
-                             )
-                           ],
-                         ),
+
+                             controller: itemController,
+                             clearOption: false,
+                             textFieldFocusNode: textFieldFocusNode,
+                             searchFocusNode: searchFocusNode,
+                             dropDownItemCount: 4,
+                             searchShowCursor: false,
+                             enableSearch: true,
+                             dropDownList: periodList,
+                             onChanged: (val) {
+                               // Extract and store the ID from the selected value
+                               selectedCategoryId = val.value;
+                               print('Selected value: $val');
+                               fetchGetLeaveInfo1(selectedCategoryId);
+                             },
+                           ),
+                         ],
                        ),
                      ),
-                     Padding(
-                       padding: const EdgeInsetsDirectional.fromSTEB(5, 0, 5, 5),
-                       child: ElevatedButton(
-                         onPressed: () {
-                           // Reset form
-                           _fromDateController.clear();
-                           _endDateController.clear();
-                           updateLeaveDuration.clear();
-                           _applyDateController.clear();
-                           _applyDateController.clear();
-                           _reasonController.clear();
-                           _emergencyContactNoController.clear();
-                           _emergencyAddressController.clear();
-                           setState(() {
-                             currentOptions = options[0]; // Reset to default value
-                             fromDate = null;
-                             endDate = null;
-                           });
-
-
-                           dutiesEmployeeIdController.clear();
-                           dutiesEmployeeNameController.clear();
-                           dutiesEmployeeDesignationController.clear();
-                         },
-                         style: ElevatedButton.styleFrom(
-                           backgroundColor: Colors.blueAccent,
-                           shape: StadiumBorder(), // Background color
-                         ),
-                         child: Row(
-                           children: [
-                             Padding(
-                               padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
-                               child: Icon(Icons.restart_alt, color: Colors.white,),
+                     Container(
+                       width: MediaQuery.of(context).size.width,
+                       child: SingleChildScrollView(
+                         scrollDirection: Axis.horizontal,
+                         child: Padding(
+                           padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                           child: DataTable(
+                             border: TableBorder.all(color: Colors.black),
+                             headingRowColor: MaterialStateColor.resolveWith((states) => Colors.blue),
+                             columns: [
+                               DataColumn(label: Text('#SN')),
+                               DataColumn(label: Text('Leave Type')),
+                               DataColumn(label: Text('Total')),
+                               DataColumn(label: Text('Avalied')),
+                               DataColumn(label: Text('Balance')),
+                             ],
+                             rows: List<DataRow>.generate(
+                               getLeaveInfoLists.length,
+                                   (index) => DataRow(
+                                 cells: [
+                                   DataCell(Text((index + 1).toString())),
+                                   DataCell(Text(getLeaveInfoLists[index].typeName)),
+                                   DataCell(Text(getLeaveInfoLists[index].tOtalLeave.toString())),
+                                   DataCell(Text(getLeaveInfoLists[index].accepteDuration.toString())),
+                                   DataCell(Text(getLeaveInfoLists[index].balance.toString())),
+                                 ],
+                               ),
                              ),
-                             Text(
-                               'Reset',
-                               style: TextStyle(fontSize: 20, color: Colors.white),
-                             )
-                           ],
+                           ),
                          ),
                        ),
                      ),
                    ],
-                 )
-          ],
-        ),
-            )),
+                 ),
+               ),
+
+               Padding(
+                 padding: const EdgeInsets.all(10),
+                 child: SingleChildScrollView(
+                   scrollDirection: Axis.horizontal,
+                   child: DataTable(
+                     border: TableBorder.all(color: Colors.black),
+                     headingRowColor: MaterialStateColor.resolveWith((states) => Colors.blue),
+                     columns: [
+                       DataColumn(label: Text('#SN')),
+                       DataColumn(label: Text('Apply Date')),
+                       DataColumn(label: Text('Start Date')),
+                       DataColumn(label: Text('End Date')),
+                       DataColumn(label: Text('Duration')),
+                     ],
+                     rows: List<DataRow>.generate(
+                       getLeaveInfoList.length,
+                           (index) => DataRow(
+                         cells: [
+                           DataCell(Text((index + 1).toString())),
+                           DataCell(Text(DateFormat("dd-MMM").format(DateTime.parse(getLeaveInfoList[index].applyDate)))),
+                           DataCell(Text(DateFormat("dd-MMM").format(DateTime.parse(getLeaveInfoList[index].startDate)))),
+                           DataCell(Text(DateFormat("dd-MMM").format(DateTime.parse(getLeaveInfoList[index].endDate)))),
+                           DataCell(Text(getLeaveInfoList[index].days.toString())),
+                         ],
+                       ),
+                     ),
+                   ),
+                 ),
+               ),
+
+               /*GestureDetector(
+                 onTap: () {
+                   Navigator.push(context, MaterialPageRoute(builder: (context) => TestWidget(
+                     empCode: widget.empCode,
+                     companyID: widget.companyID,
+                   )));
+                 },
+                 child: Text("imon"),
+               ),*/
+
+
+               Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                 child: SingleChildScrollView(
+                   scrollDirection: Axis.horizontal,
+                   child: DataTable(
+                     border: TableBorder.all(color: Colors.black),
+                     headingRowColor: MaterialStateColor.resolveWith((states) => Colors.blue),
+                     columns: [
+                       DataColumn(label: Text('#SN')),
+                       DataColumn(label: Text('Leave Type')),
+                       DataColumn(label: Text('Duration')),
+                       DataColumn(label: Text('Remark')),
+                       DataColumn(label: Text('Last Position')),
+                       DataColumn(label: Text('Status')),
+                     ],
+                     rows: List<DataRow>.generate(
+                       getLeaveInfoStatus3.length,
+                           (index) => DataRow(
+                         cells: [
+                           DataCell(Text((index + 1).toString())),
+                           DataCell(Text(getLeaveInfoStatus3[index].typeName)),
+                           DataCell(Text(getLeaveInfoStatus3[index].accepteDuration.toString())),
+                           DataCell(Text(getLeaveInfoStatus3[index].remarks)),
+                           DataCell(Text(getLeaveInfoStatus3[index].empName)),
+                           DataCell(Text(getLeaveInfoStatus3[index].status)),
+                         ],
+                       ),
+                     ),
+                   ),
+                 ),
+               ),
+
+
+        ],
       ),
+          )),
     );
   }
 
 }
 
+class GetLeaveInfoModels1 {
+  final String typeName;
+  final String tOtalLeave;
+  final String maxDays;
+  final String accepteDuration;
+  final String balance;
 
+  GetLeaveInfoModels1({
+    required this.typeName,
+    required this.tOtalLeave,
+    required this.maxDays,
+    required this.accepteDuration,
+    required this.balance,
+  });
+
+  factory GetLeaveInfoModels1.fromJson(Map<String, dynamic> json) {
+    return GetLeaveInfoModels1(
+      typeName: json['typeName'] ?? '',
+      tOtalLeave: json['tOtalLeave'] ?? '',
+      maxDays: json['maxDays'] ?? '',
+      accepteDuration: json['accepteDuration'] ?? '',
+      balance: json['balance'].toString(),
+    );
+  }
+
+  @override
+  String toString() {
+    return 'LeaveDatafor{'
+        'typeName: $typeName, '
+        'tOtalLeave: $tOtalLeave, '
+        'maxDays: $maxDays, '
+        'accepteDuration: $accepteDuration, '
+        'balance: $balance, ';
+  }
+}

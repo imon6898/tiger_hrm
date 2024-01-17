@@ -1,3 +1,4 @@
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
@@ -131,12 +132,20 @@ class LoginPage extends StatelessWidget {
                 SizedBox(height: 17),
                 ElevatedButton(
                   onPressed: () async {
-                    await loginController.loginUser(
-                      userName: userNameController.text,
-                      password: passwordController.text,
-                      context: context,
-
-                    );
+                    // Check internet connection before attempting login
+                    var connectivityResult =
+                    await Connectivity().checkConnectivity();
+                    if (connectivityResult == ConnectivityResult.none) {
+                      // No internet connection
+                      showSnackbar(context, 'No internet connection');
+                    } else {
+                      // Internet is available, proceed with login
+                      await loginController.loginUser(
+                        userName: userNameController.text,
+                        password: passwordController.text,
+                        context: context,
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 100, vertical: 16),
@@ -177,6 +186,15 @@ class LoginPage extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void showSnackbar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 5),
       ),
     );
   }

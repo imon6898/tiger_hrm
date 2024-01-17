@@ -8,7 +8,6 @@ import 'package:lottie/lottie.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/custom_text_field2.dart';
 import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
 import 'package:tiger_erp_hrm/pages/subPages/leave_approve_by_hr/Model/model.dart';
-import 'package:tiger_erp_hrm/test.dart';
 import 'dart:convert';
 
 import '../../../../Coustom_widget/CustomDatePickerField.dart';
@@ -25,12 +24,14 @@ class CustomEditTableHr extends StatefulWidget {
   final String empCode;
   final String companyID;
   final String companyName;
+  final String reportTo;
 
   CustomEditTableHr({//required this.token,
     required this.userName,
     required this.empCode,
     required this.companyID,
     required this.companyName,
+    required this.reportTo,
   });
 
 
@@ -94,9 +95,13 @@ class _CustomEditTableHrState extends State<CustomEditTableHr> {
 
 
   Future<void> fromSelectDate() async {
+    DateTime initialDatePickerDate = editfromDateController.text.isEmpty
+        ? DateTime.now()
+        : DateTime.parse(editfromDateController.text);
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: initialDatePickerDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
@@ -110,24 +115,40 @@ class _CustomEditTableHrState extends State<CustomEditTableHr> {
   }
 
   Future<void> endSelectDate() async {
+    DateTime initialDatePickerDate = editendDateController.text.isEmpty
+        ? DateTime.now()
+        : DateTime.parse(editendDateController.text);
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: initialDatePickerDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
+
     if (picked != null) {
       setState(() {
         endDate = picked;
         editendDateController.text = picked.toString().split(" ")[0];
         _updateLeaveDuration(); // Calculate and update Leave Duration
+
+        // Check if fromDate is null, show snackbar if true
+        if (fromDate == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Please select From Date first.'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
       });
     }
   }
 
   void _updateLeaveDuration() {
     if (fromDate != null && endDate != null) {
-      final duration = endDate!.difference(fromDate!).inDays;
+      final duration = endDate!.difference(fromDate!).inDays + 1;
       editApplideDayChangeController.text = '$duration';
     } else {
       editApplideDayChangeController.text = '';
@@ -143,7 +164,7 @@ class _CustomEditTableHrState extends State<CustomEditTableHr> {
 
     var request = http.Request(
       'POST',
-      Uri.parse('${BaseUrl.baseUrl}/api/v1/leave/ApproveByHr'),
+      Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/leave/ApproveByHr'),
     );
 
     request.body = json.encode({
@@ -193,7 +214,7 @@ class _CustomEditTableHrState extends State<CustomEditTableHr> {
     };
 
     // Construct the URL
-    String apiUrl = '${BaseUrl.baseUrl}/api/v1/leave/CancelByHr/$leaveId';
+    String apiUrl = '${BaseUrl.baseUrl}/api/${v.v1}/leave/CancelByHr/$leaveId';
     Uri requestUri = Uri.parse(apiUrl); // Parse the URL
 
     print('Request URL: $requestUri'); // Print the URL
@@ -262,8 +283,8 @@ class _CustomEditTableHrState extends State<CustomEditTableHr> {
       'Authorization': BaseUrl.authorization,
     };
     var request = http.Request(
-      'GET', //${BaseUrl.baseUrl}/api/v1/leave/GetWaitingLeaveForApprove/1/23/${widget.empCode}
-      Uri.parse('${BaseUrl.baseUrl}/api/v1/leave/GetLeaveInfoForHrApprove/${widget.companyID}'),
+      'GET', //${BaseUrl.baseUrl}/api/${v.v1}/leave/GetWaitingLeaveForApprove/1/23/${widget.empCode}
+      Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/leave/GetLeaveInfoForHrApprove/${widget.companyID}/${widget.reportTo}'),
     );
     request.headers.addAll(headers);
 
@@ -538,7 +559,7 @@ class _CustomEditTableHrState extends State<CustomEditTableHr> {
                 DataCell(
                   ElevatedButton(
                     onPressed: () {
-                      final leaveData = LeaveData(
+                      final leaveDataforHR = LeaveDataForHR(
                         empCode: data['E.Code']?.toString() ?? "",
                         empName: data['Name'].toString(),
                         applyDate: DateFormat("dd-MMM-yyyy").format(DateTime.parse("${data['ApplyDate']}")).toString(),
@@ -560,9 +581,9 @@ class _CustomEditTableHrState extends State<CustomEditTableHr> {
                         userName: data['UserName']?.toString() ?? "", // Add this line
                         authorityEmpcode: data['AuthorityEmpcode']?.toString() ?? "", // Add this line
                       );
-                      print(leaveData);
+                      print(leaveDataforHR);
                       handleEditButton(
-                        leaveData,
+                        leaveDataforHR,
                         data['E.Code'].toString(),
                         data['Name'].toString(),
                         DateFormat("dd-MMM-yyyy").format(DateTime.parse("${data['ApplyDate']}")).toString(),
@@ -607,7 +628,7 @@ class _CustomEditTableHrState extends State<CustomEditTableHr> {
   }
 
   void handleEditButton(
-      LeaveData leaveData,
+      LeaveDataForHR leaveData,
       String employeeId,
       String employeeName,
       String applyDateController,
@@ -862,10 +883,10 @@ class _CustomEditTableHrState extends State<CustomEditTableHr> {
       String editedEndDate,
       String editedApplideDay,
       String editedApplideDayChange,
-      LeaveData leaveData,
+      LeaveDataForHR leaveData,
       String selectedOption,
       ) async {
-    final String updateUrl = '${BaseUrl.baseUrl}/api/v1/leave/UpdateAndApproveByHr';
+    final String updateUrl = '${BaseUrl.baseUrl}/api/${v.v1}/leave/UpdateAndApproveByHr';
 
     var headers = {
       'Content-Type': 'application/json',

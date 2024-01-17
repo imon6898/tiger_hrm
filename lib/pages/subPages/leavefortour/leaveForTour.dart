@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
-class MyTasksPage extends StatefulWidget {
-
-  const MyTasksPage({super.key});
+class LeaveforTour extends StatefulWidget {
+  const LeaveforTour({super.key});
 
   @override
-  State<MyTasksPage> createState() => _MyTasksPageState();
+  State<LeaveforTour> createState() => _LeaveforTourState();
 }
 
-class _MyTasksPageState extends State<MyTasksPage> {
+class _LeaveforTourState extends State<LeaveforTour> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,7 +23,7 @@ class _MyTasksPageState extends State<MyTasksPage> {
         title: const Text(
           style:
           TextStyle(color: Colors.white, fontSize: 30, fontFamily: 'Kanit'),
-          'My Task',
+          'Leave For Tour',
           textAlign: TextAlign.center,
         ),
       ),

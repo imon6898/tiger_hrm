@@ -17,13 +17,14 @@ class _ApproveAttendPageState extends State<ApproveAttendPage> {
     DateTime now = DateTime.now();
 
     return Scaffold(
+      backgroundColor: Color(0xffe9f0fd),
       appBar: AppBar(
         backgroundColor: const Color(0xff162b4a),
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: const Icon(Icons.arrow_back_ios_rounded),
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white,),
         ),
         title: const Text(
           style:

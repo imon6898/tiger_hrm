@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../LoginApiController/loginController.dart';
+
 class CustomDropdownTextField extends StatefulWidget {
   final String hintText;
   final String labelText;
@@ -68,7 +70,7 @@ Future<List<Map<String, dynamic>>?> fetchLeaveTypes() async {
     };
     var request = http.Request(
       'GET',
-      Uri.parse('http://175.29.186.86:7021/api/v1/leave/get-leave-type/1/1'),
+      Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/leave/get-leave-type/1/1'),
     );
     request.headers.addAll(headers);
 

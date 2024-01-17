@@ -4,13 +4,13 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/CustomDatePickerField.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/Textfield.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/coustom_text%20field.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/custom_text_field2.dart';
 import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
 import 'package:tiger_erp_hrm/pages/subPages/leave_approve/Components/Model/model.dart';
-import 'package:tiger_erp_hrm/test.dart';
 import 'dart:convert';
 
 
@@ -86,49 +86,6 @@ class _CustomTableState extends State<CustomTable> {
 
 
 
-  Future<void> fromSelectDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() {
-        fromDate = picked;
-        editfromDateController.text = picked.toString().split(" ")[0];
-        _updateLeaveDuration(); // Calculate and update Leave Duration
-      });
-    }
-  }
-
-  Future<void> endSelectDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() {
-        endDate = picked;
-        editendDateController.text = picked.toString().split(" ")[0];
-        _updateLeaveDuration(); // Calculate and update Leave Duration
-      });
-    }
-  }
-
-  void _updateLeaveDuration() {
-    if (fromDate != null && endDate != null) {
-      final duration = endDate!.difference(fromDate!).inDays;
-      editApplideDayChangeController.text = '$duration';
-    } else {
-      editApplideDayChangeController.text = '';
-    }
-  }
-
-
-
   void fetchDutiesEmployeeData(String empCode) async {
     empCode = empCode ?? 'defaultEmpCode';
     var headers = {
@@ -138,7 +95,7 @@ class _CustomTableState extends State<CustomTable> {
 
     var response = await http.get(
       Uri.parse(
-          '${BaseUrl.baseUrl}/api/v1/GetEmployment/$empCode/${widget.companyID}'),
+          '${BaseUrl.baseUrl}/api/${v.v1}/GetEmployment/$empCode/${widget.companyID}'),
       headers: headers,
     );
 
@@ -165,19 +122,28 @@ class _CustomTableState extends State<CustomTable> {
 
     var request = http.Request(
       'POST',
-      Uri.parse('${BaseUrl.baseUrl}/api/v1/leave/UpdateLeaveInfoStatus'),
+      Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/UpdateRecommand'),
     );
 
     request.body = json.encode({
-      "id": 0,
-      "leaveID": leaveId,
+      "id": leaveId,
       "reqFrom": widget.empCode,
       "reqTo": forwardToIDController.text,
-      "statusDate": statusDate,  // Use the provided statusDate parameter
-      "status": 1,
-      "companyID": 1,
+      "companyID": widget.companyID,
       "remarks": remark,
-      "type": 2,
+      "type": 1,
+      "status": 2,
+
+
+      // "id": 0,
+      // "leaveID": leaveId,
+      // "reqFrom": widget.empCode,
+      // "reqTo": forwardToIDController.text,
+      // "statusDate": statusDate,  // Use the provided statusDate parameter
+      // "status": 1,
+      // "companyID": 1,
+      // "remarks": remark,
+      // "type": 2,
     });
 
     request.headers.addAll(headers);
@@ -209,7 +175,6 @@ class _CustomTableState extends State<CustomTable> {
       );
     }
   }
-
 
   Future<void> fetchPendingToApproveLeave(int leaveId, String remark, String statusDate) async {
     var headers = {
@@ -219,19 +184,29 @@ class _CustomTableState extends State<CustomTable> {
 
     var request = http.Request(
       'POST',
-      Uri.parse('${BaseUrl.baseUrl}/api/v1/leave/UpdateLeaveInfoStatus'),
+      Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/UpdateRecommand'),
     );
 
     request.body = json.encode({
-      "id": 0,
-      "leaveID": leaveId,
+
+      "id": leaveId,
       "reqFrom": widget.empCode,
       "reqTo": forwardToIDController.text,
-      "statusDate": statusDate,  // Use the provided statusDate parameter
-      "status": 1,
-      "companyID": 1,
+      "companyID": widget.companyID,
       "remarks": remark,
-      "type": 1,
+      "type": 2,
+      "status": 2,
+
+
+      // "id": 0,
+      // "leaveID": leaveId,
+      // "reqFrom": widget.empCode,
+      // "reqTo": forwardToIDController.text,
+      // "statusDate": statusDate,  // Use the provided statusDate parameter
+      // "status": 1,
+      // "companyID": 1,
+      // "remarks": remark,
+      // "type": 1,
     });
 
     request.headers.addAll(headers);
@@ -264,7 +239,6 @@ class _CustomTableState extends State<CustomTable> {
     }
   }
 
-
   Future<void> fetchCancelLeave(int leaveId, String remark, String statusDate) async {
     var headers = {
       'Content-Type': 'application/json',
@@ -273,19 +247,31 @@ class _CustomTableState extends State<CustomTable> {
 
     var request = http.Request(
       'POST',
-      Uri.parse('${BaseUrl.baseUrl}/api/v1/leave/UpdateLeaveInfoStatus'),
+      Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/UpdateRecommand'),
     );
 
+    print("request.body : ${json.encode}");
     request.body = json.encode({
-      "id": 0,
-      "leaveID": leaveId,
+
+      "id": leaveId,
       "reqFrom": widget.empCode,
-      "reqTo": "",
-      "statusDate": statusDate,  // Use the provided statusDate parameter
-      "status": 1,
-      "companyID": 1,
+      "reqTo": forwardToIDController.text,
+      "companyID": widget.companyID,
       "remarks": remark,
       "type": 3,
+      "status": -1,
+
+
+
+      // "id": 0,
+      // "leaveID": leaveId,
+      // "reqFrom": widget.empCode,
+      // "reqTo": "",
+      // "statusDate": statusDate,  // Use the provided statusDate parameter
+      // "status": 1,
+      // "companyID": 1,
+      // "remarks": remark,
+      // "type": 3,
     });
 
     request.headers.addAll(headers);
@@ -318,9 +304,6 @@ class _CustomTableState extends State<CustomTable> {
     }
   }
 
-
-
-
   Color getRowColor(int index) {
     if (index % 3 == 0) {
       return Colors.orange;  // Black
@@ -349,7 +332,7 @@ class _CustomTableState extends State<CustomTable> {
     };
     var request = http.Request(
       'GET',
-      Uri.parse('${BaseUrl.baseUrl}/api/v1/leave/GetWaitingLeaveForApprove/1/23/${widget.empCode}'),
+      Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/leave/GetWaitingLeaveForApprove/${widget.companyID}/2023/${widget.empCode}'),
     );
     request.headers.addAll(headers);
 
@@ -377,16 +360,16 @@ class _CustomTableState extends State<CustomTable> {
             designation: item['designation'] ?? '',
             department: item['department'] ?? '',
             typeName: item['typeName'] ?? '',
-            applyDate: item['applicationDate'] ?? '',
-            startDate: item['startDate'] ?? '',
-            endDate: item['endDate'] ?? '',
+            applyDate: item['laDate'] ?? '',
+            startDate: item['lsDate'] ?? '',
+            endDate: item['leDate'] ?? '',
             days: item['accepteDuration'].toString(),
             payType: item['withpay'] ?? '',
             id: item['id'] ?? 0,
             reason: item['reason'] ?? '',
-            emgContructNo: item['emgContructNo'] ?? '',
+            emgContructNo: (item['emgContructNo'] ?? '').toString(),
             leaveTypedID: item['leaveTypedID'] ?? 0,
-            unAccepteDuration: item['unAccepteDuration'] ?? '',
+            unAccepteDuration:  (item['unAccepteDuration'] ?? '').toString(),
             referanceEmpcode: item['referanceEmpcode'] ?? '',
             grandtype: item['grandtype'] ?? '',
             appType: item['appType'] ?? '',
@@ -416,15 +399,18 @@ class _CustomTableState extends State<CustomTable> {
       );
     } else if (leaveDataList.isEmpty) {
       // Show default message when no data is available
-      return DataTable(
-        columns: [
-          const DataColumn(label: Text('No Data Available')),
-        ],
-        rows: [
-          const DataRow(cells: [
-            DataCell(Text('No data fetched from the API')),
-          ]),
-        ],
+      return Container(
+        width: MediaQuery.of(context).size.width,
+        height: 200,
+        child: Center(
+          child:
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Lottie.asset(
+              'lib/images/nodata.json', // Replace with the path to your Lottie animation file
+            ),
+          ),
+        ),
       );
     } else {
       // Show the table with fetched data
@@ -845,6 +831,7 @@ class _CustomTableState extends State<CustomTable> {
                     disableOrEnable: false,
                     controller: editApplideDayController,
                   ),
+
                   CustomTextFields(
                     labelText: 'Accept',
                     hintText: 'Accept',
@@ -852,6 +839,10 @@ class _CustomTableState extends State<CustomTable> {
                     filled: false,
                     disableOrEnable: false,
                     controller: editApplideDayChangeController,
+                    onChanged: (value) {
+                      _updateLeaveDuration();
+                      print('Text changed: $value');
+                    },
                   ),
                 ],
               ),
@@ -925,6 +916,7 @@ class _CustomTableState extends State<CustomTable> {
                           editApplideDayChangeController.text,
                           selectedOption,
                           selectedLeave,
+                          forwardToIDController.text,
                         );
 
                         Navigator.pop(context);
@@ -941,6 +933,70 @@ class _CustomTableState extends State<CustomTable> {
     );
   }
 
+  Future<void> fromSelectDate() async {
+    DateTime initialDatePickerDate = editfromDateController.text.isEmpty
+        ? DateTime.now()
+        : DateTime.parse(editfromDateController.text);
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDatePickerDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        fromDate = picked;
+        editfromDateController.text = picked.toString().split(" ")[0];
+        _updateLeaveDuration(); // Calculate and update Leave Duration
+      });
+    }
+  }
+
+  Future<void> endSelectDate() async {
+    DateTime initialDatePickerDate = editendDateController.text.isEmpty
+        ? DateTime.now()
+        : DateTime.parse(editendDateController.text);
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDatePickerDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      setState(() {
+        endDate = picked;
+        editendDateController.text = picked.toString().split(" ")[0];
+        _updateLeaveDuration(); // Calculate and update Leave Duration
+
+        // Check if fromDate is null, show snackbar if true
+        if (fromDate == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Please select From Date first.'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      });
+    }
+  }
+
+
+
+  void _updateLeaveDuration() {
+    if (fromDate != null && endDate != null) {
+      final duration = endDate!.difference(fromDate!).inDays + 1;
+      editApplideDayChangeController.text = '$duration';
+    } else {
+      editApplideDayChangeController.text = '';
+    }
+  }
+
+
 
   Future<void> fetchUpdateLeaveApprove(
       String employeeName,
@@ -952,7 +1008,9 @@ class _CustomTableState extends State<CustomTable> {
       String acceptedDays,
       String payType,
       LeaveDatafor selectedLeave,
+      String forwardToID,
       ) async {
+    // Print the data before constructing the request
     print('Employee Name: $employeeName');
     print('Leave Type: $leaveType');
     print('Apply Date: $applyDate');
@@ -971,7 +1029,7 @@ class _CustomTableState extends State<CustomTable> {
 
     var request = http.Request(
       'POST',
-      Uri.parse('${BaseUrl.baseUrl}/api/v1/leave/UpdateLeaveApprove'),
+      Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/leave/UpdateByAuthority'),
     );
 
     // Format dates using DateFormat
@@ -979,25 +1037,32 @@ class _CustomTableState extends State<CustomTable> {
     final formattedEndDate = DateFormat("yyyy-MM-ddTHH:mm:ss.SSS'Z'").format(DateTime.parse(endDate));
     final formattedApplicationDate = DateFormat("yyyy-MM-ddTHH:mm:ss.SSS'Z'").format(DateTime.parse(applyDate));
 
-    request.body = json.encode([
+    request.body = json.encode(
       {
-        "id": selectedLeave.id, // Assuming id is the leave ID
-        "empCode": selectedLeave.empCode, // Assuming empCode corresponds to forwardToID
+        "id": selectedLeave.id,
         "startDate": formattedStartDate,
         "endDate": formattedEndDate,
         "applicationDate": formattedApplicationDate,
-        "accepteDuration": int.parse(acceptedDays), // Convert to int
-        "leaveTypedID": selectedLeave.leaveTypedID, // Assuming leaveTypedID is the correct property
+        "accepteDuration": int.parse(acceptedDays),
+        "leaveTypedID": selectedLeave.leaveTypedID,
+        "unAccepteDuration": int.parse(appliedDays),
+        "grandtype": 2,
         "withpay": payType,
-        "companyID": 1, // Assuming companyID is the correct property
+        "appType": selectedLeave.appType,
+        "companyID": selectedLeave.companyID,
+        "forwardEmpCode": forwardToID,
       },
-    ]
     );
-
 
     request.headers.addAll(headers);
 
+    // Print the JSON-encoded request body before sending the request
+    print('Request Body: ${request.body}');
+
     http.StreamedResponse response = await request.send();
+
+    String responseBody = await response.stream.bytesToString();
+    print(responseBody);
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1007,7 +1072,6 @@ class _CustomTableState extends State<CustomTable> {
           backgroundColor: Colors.green,
         ),
       );
-      print(await response.stream.bytesToString());
       await fetchGetWaitingLeaveForApprove();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1019,7 +1083,9 @@ class _CustomTableState extends State<CustomTable> {
       );
       print(response.reasonPhrase);
     }
+
   }
+
 
 
 }

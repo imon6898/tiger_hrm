@@ -7,7 +7,16 @@ import 'util.dart';
 
 
 class LPdfPage extends StatefulWidget {
-  const LPdfPage({Key? key}) : super(key: key);
+  final String userName;
+  final String empCode;
+  final String companyID;
+  final String companyName;
+  const LPdfPage({Key? key,
+    required this.userName,
+    required this.empCode,
+    required this.companyID,
+    required this.companyName,
+  }) : super(key: key);
 
   @override
   State<LPdfPage> createState() => _LPdfPageState();
@@ -53,7 +62,12 @@ class _LPdfPageState extends State<LPdfPage> {
         actions: action,
         onPrinted: showPrintedToast,
         onShared: showShearedToast,
-        build: generatePdf,
+        build: (format) => generateLoanPdf( format,
+          widget.empCode,
+          widget.companyID,
+          widget.userName,
+          widget.companyName,
+        ),
       ),
     );
   }

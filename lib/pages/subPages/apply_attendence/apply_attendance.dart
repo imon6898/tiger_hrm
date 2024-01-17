@@ -1,10 +1,11 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 import 'dart:convert';
-
+import 'dart:math' as math;
 import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/coustom_text%20field.dart';
 import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
 import 'package:tiger_erp_hrm/pages/subPages/apply_attendence/subScreen/FirstScreen.dart';
@@ -17,13 +18,15 @@ class AttendancePage extends StatefulWidget {
   final String companyID;
   final String companyName;
   final String userName;
+  final Position location;
   const AttendancePage(
       {
         super.key,
         required this.empCode,
         required this.companyID,
         required this.companyName,
-        required this.userName
+        required this.userName,
+        required this.location
       });
 
   @override
@@ -46,7 +49,7 @@ class _AttendancePageState extends State<AttendancePage> {
 
     var response = await http.get(
       Uri.parse(
-          '${BaseUrl.baseUrl}/api/v1/GetEmployment/${widget.empCode}/${widget.companyID}'),
+          '${BaseUrl.baseUrl}/api/${v.v1}/GetEmployment/${widget.empCode}/${widget.companyID}'),
       headers: headers,
     );
 
@@ -84,13 +87,14 @@ class _AttendancePageState extends State<AttendancePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xfff7f9fd),
       appBar: AppBar(
         backgroundColor: const Color(0xff162b4a),
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: const Icon(Icons.arrow_back_ios_rounded),
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white,),
         ),
         title: const Text(
           style:
@@ -147,162 +151,181 @@ class _AttendancePageState extends State<AttendancePage> {
               hintText: '',
 
             ),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 5, 5),
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        minimumSize: Size(44, 40),
-
-                        shape: StadiumBorder()// Background color
-                    ),
-                    child: Row(children: [
-                      Padding(
-                        padding:
-                        const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
-                        child: Icon(Icons.supervised_user_circle_rounded),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(30, 0, 20, 5),
+                      child: Text(
+                        'Remarks',
+                        style: TextStyle(
+                          fontFamily: 'Readex Pro',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 20,
+                        ),
                       ),
-                      Text(
-                        'Show Employee',
-                        style: TextStyle(fontSize: 20),
-                      )
-                    ]),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(5, 0, 5, 5),
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                        minimumSize: Size(34, 40),
-
-                        shape: StadiumBorder()// Background color
                     ),
-                    child: Row(children: [
-                      Padding(
-                        padding:
-                        const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
-                        child: Icon(Icons.restart_alt),
-                      ),
-                      Text(
-                        'Reset',
-                        style: TextStyle(fontSize: 20),
-                      )
-                    ]),
                   ),
-                ),
-
-              ],
+                  Padding(
+                    padding: EdgeInsetsDirectional.fromSTEB(30, 0, 20, 0),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(width: 2, color: Color(0xFFBCC2C2)),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(width: 2, color: Color(0xFFBCC2C2)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(width: 2, color: Colors.blueAccent),
+                        ),
+                        hintText: 'Remarks',
+                      ),
+                      controller: TextEditingController(
+                        text: 'Location: ${widget.location?.latitude ?? 0.0}, ${widget.location?.longitude ?? 0.0}',
+                      ),
+                      readOnly: true,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.cyan,
-                        minimumSize: Size(34, 40),
-                        shape: StadiumBorder()// Background color
+
+
+            ElevatedButton(
+              onPressed: () {
+                // Replace officeLat and officeLon with your office location coordinates
+                double officeLat = 23.7460321;
+                double officeLon = 90.3906891;
+
+                // Calculate the distance between current location and office location
+                double distance = calculateDistance(
+                  widget.location.latitude,
+                  widget.location.longitude,
+                  officeLat,
+                  officeLon,
+                );
+
+                // Check if the distance is less than or equal to 100 meters
+                if (distance <= 50.0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Location matches!'),
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 3),
                     ),
-                    child: Row(children: [
-                      Padding(
-                        padding:
-                        const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
-                        child: Icon(CupertinoIcons.profile_circled),
-                      ),
-                      Text(
-                        'Show Attendance Data',
-                        style: TextStyle(fontSize: 20),
-                      )
-                    ]),
-                  ),
-                ),
-              ],
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Location does not match!'),
+                      backgroundColor: Colors.red,
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+              },
+              child: Text('Press Me'),
             ),
+
+
             SizedBox(height: 20),
             Container(
-                height: 420,
-                margin: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  //color: Colors.yellow,
-                    borderRadius: BorderRadius.circular(10)
-                ),
-                child: DefaultTabController(
-                  length: 2, // Number of tabs (screens)
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Tab Bar
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: const Color(0xff162b4a),
-                          //color: Colors.red,
-                        ),
-                        constraints: const BoxConstraints.expand(height: 50),
-                        child: TabBar(
-                          labelPadding: EdgeInsets.zero,
-                          //indicatorPadding: EdgeInsets.zero,
-                          onTap: (index) {
-                            setState(() {
-                            });
-                          },
-                          tabs: [
-                            // Tab for FirstScreen
-                            Container(
-                              constraints: const BoxConstraints.expand(height: 50,width: double.infinity),
-                              child: const Tab(
-                                child: Text("Arrive Time"),
-                              ),
-                            ),
-                            // Tab for SecondScreen
-                            Container(
-                              constraints: const BoxConstraints.expand(height: 50,width: double.infinity),
-                              child: const Tab(
-                                child: Text("Leave Time"),
-                              ),
-                            ),
-                          ],
-                          indicator: BoxDecoration(
-                            color: const Color(0xff162b4a),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: Colors.white, // Border color
-                              width: 4.0,           // Border width
+              height: 420,
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                //color: Colors.yellow,
+                  borderRadius: BorderRadius.circular(10)
+              ),
+              child: DefaultTabController(
+                length: 2, // Number of tabs (screens)
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Tab Bar
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: const Color(0xff162b4a),
+                        //color: Colors.red,
+                      ),
+                      constraints: const BoxConstraints.expand(height: 50),
+                      child: TabBar(
+                        labelPadding: EdgeInsets.zero,
+                        //indicatorPadding: EdgeInsets.zero,
+                        onTap: (index) {
+                          setState(() {
+                          });
+                        },
+                        tabs: [
+                          // Tab for FirstScreen
+                          Container(
+                            constraints: const BoxConstraints.expand(height: 50,width: double.infinity),
+                            child: const Tab(
+                              child: Text("Arrive Time"),
                             ),
                           ),
-                          labelColor: Colors.white,
-                          unselectedLabelColor: Colors.white,
+                          // Tab for SecondScreen
+                          Container(
+                            constraints: const BoxConstraints.expand(height: 50,width: double.infinity),
+                            child: const Tab(
+                              child: Text("Leave Time"),
+                            ),
+                          ),
+                        ],
+                        indicator: BoxDecoration(
+                          color: const Color(0xff162b4a),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Colors.white, // Border color
+                            width: 4.0,           // Border width
+                          ),
                         ),
+                        labelColor: Colors.white,
+                        unselectedLabelColor: Colors.white,
                       ),
+                    ),
 
-                      // Tab Views
-                       Expanded(
-                        child: TabBarView(
-                          //physics: NeverScrollableScrollPhysics(), // Disable swipe to change tabs
-                          children: [
-                            ArriveOfficeTime(), // FirstScreen content
-                            LeaveOfficeTime(), // SecondScreen content
-                          ],
-                        ),
+
+                    // Tab Views
+                    Expanded(
+                      child: TabBarView(
+                        //physics: NeverScrollableScrollPhysics(), // Disable swipe to change tabs
+                        children: [
+                          ArriveOfficeTime(), // FirstScreen content
+                          LeaveOfficeTime(), // SecondScreen content
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              ),
 
-                ),
+            ),
           ],
         ),
       ),
     );
   }
+
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const int earthRadius = 6371000; // Radius of the earth in meters
+    double dLat = (lat2 - lat1) * (math.pi / 180.0);
+    double dLon = (lon2 - lon1) * (math.pi / 180.0);
+    double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(lat1 * (math.pi / 180.0)) *
+            math.cos(lat2 * (math.pi / 180.0)) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
+    double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    double distance = earthRadius * c;
+    return distance;
+  }
+
 }
+
+
+

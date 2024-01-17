@@ -36,7 +36,7 @@ class _LeaveOfficeTimeState extends State<LeaveOfficeTime> {
                           children: [
                             Text('Date: ',style: TextStyle(fontSize: 20,fontFamily: 'Readex Pro',fontWeight: FontWeight.w500)),
                             Text(
-                              '${now.day}-${now.month}-${now.year}',
+                              '${DateFormat('dd-MMM-yyyy').format(now)}',
                               style: TextStyle(fontSize: 25,fontFamily: 'Readex Pro',fontWeight: FontWeight.w500),textAlign: TextAlign.left,
 
                             ),
@@ -113,11 +113,11 @@ class _LeaveOfficeTimeState extends State<LeaveOfficeTime> {
                     Padding(
                       padding:
                       const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
-                      child: Icon(Icons.restart_alt),
+                      child: Icon(Icons.share_arrival_time_outlined, color: Colors.white,),
                     ),
                     Text(
-                      'Save Attendance',
-                      style: TextStyle(fontSize: 20),
+                      'Check Out',
+                      style: TextStyle(fontSize: 20, color: Colors.white),
                     )
                   ]),
                 ),

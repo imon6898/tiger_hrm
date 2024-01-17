@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
+import '../LoginApiController/loginController.dart';
+
 class RecommendationWidget extends StatefulWidget {
   final String token;
   final String empCode;
@@ -34,7 +36,7 @@ class _RecommendationWidgetState extends State<RecommendationWidget> {
     };
 
     var response = await http.get(
-      Uri.parse('http://175.29.186.86:7021/api/v1/GetEmployment/$empCode/${widget.companyID}'),
+      Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/GetEmployment/$empCode/${widget.companyID}'),
       headers: headers,
     );
 

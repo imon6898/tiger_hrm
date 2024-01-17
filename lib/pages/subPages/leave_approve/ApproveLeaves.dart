@@ -10,7 +10,6 @@ import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
 
 import '../../../Coustom_widget/coustom_text field.dart';
 import 'Components/custom_edit_table.dart';
-import '../../../test.dart';
 import '../../../test2.dart';
 
 class ApproveLeavesPage extends StatefulWidget {
@@ -58,7 +57,7 @@ class _ApproveLeavesPageState extends State<ApproveLeavesPage> {
 
     var response = await http.get(
       Uri.parse(
-          '${BaseUrl.baseUrl}/api/v1/GetEmployment/$empCode/${widget.companyID}'),
+          '${BaseUrl.baseUrl}/api/${v.v1}/GetEmployment/$empCode/${widget.companyID}'),
       headers: headers,
     );
 
@@ -90,7 +89,7 @@ class _ApproveLeavesPageState extends State<ApproveLeavesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xffe8e4e4),
+      backgroundColor: Color(0xffe9f0fd),
       appBar: AppBar(
         backgroundColor: const Color(0xff162b4a),
         leading: IconButton(

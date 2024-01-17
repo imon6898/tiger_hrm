@@ -184,9 +184,9 @@ Future<Uint8List> generatePdfPS(
   final doc = pw.Document(
     title: 'Flutter School',
   );
-  final logoImage = pw.MemoryImage((await rootBundle.load('lib/images/Star-Tech.png')).buffer.asUint8List());
+  final logoImage = pw.MemoryImage((await rootBundle.load('lib/images/DailyStar.png')).buffer.asUint8List());
 
-  final FooterImage = pw.MemoryImage((await rootBundle.load('lib/images/Star-Tech.png')).buffer.asUint8List());
+  final FooterImage = pw.MemoryImage((await rootBundle.load('lib/images/DailyStar.png')).buffer.asUint8List());
 
   final font = await rootBundle.load('lib/images/OpenSans-Regular.ttf');
   final ttf = pw.Font.ttf(font);
@@ -200,8 +200,8 @@ Future<Uint8List> generatePdfPS(
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
-            pw.Text('Start Tech & Engineering LTD.', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20)),
-            pw.Text('6th floor, 28 Kazi Nazrul Islam Ave, Navana Zohura Square, Dhaka 1000',
+            pw.Text('The Daily Star', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20)),
+            pw.Text('64-65, Kazi Nazrul Islam Avenue, Dhaka-1215',
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.Text('Pay Slip', style: pw.TextStyle(color: PdfColors.blue, fontWeight: pw.FontWeight.bold, fontSize: 15)),
           ],
@@ -465,17 +465,51 @@ Future<Uint8List> generatePdfPS(
 
 pw.TableRow pwTableRow(List<String> texts) {
   return pw.TableRow(
-    children: texts.map((text) => pw.Container(
-      padding: const pw.EdgeInsets.all(8.0),
-      child: pw.Text(text, style: pw.TextStyle(fontSize: 10,)),
-    )).toList(),
+    children: [
+      // Left-aligned text
+      pw.Container(
+        padding: const pw.EdgeInsets.all(8.0),
+        alignment: pw.Alignment.centerLeft,
+        child: pw.Text(
+          texts[0],
+          style: pw.TextStyle(fontSize: 10),
+        ),
+      ),
+      // Right-aligned text
+      pw.Container(
+        padding: const pw.EdgeInsets.all(8.0),
+        alignment: pw.Alignment.centerRight,
+        child: pw.Text(
+          texts[1],
+          style: pw.TextStyle(fontSize: 10),
+        ),
+      ),
+    ],
   );
-}pw.TableRow pwTableRowWithBold(List<String> texts) {
+}
+
+
+pw.TableRow pwTableRowWithBold(List<String> texts) {
   return pw.TableRow(
-    children: texts.map((text) => pw.Container(
-      padding: const pw.EdgeInsets.all(8.0),
-      child: pw.Text(text, style: pw.TextStyle(fontSize: 10,fontWeight: pw.FontWeight.bold)),
-    )).toList(),
+    children: [
+      // Left-aligned text
+      pw.Container(
+        padding: const pw.EdgeInsets.all(8.0),
+        child: pw.Text(
+          texts[0],
+          style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+        ),
+      ),
+      // Right-aligned text
+      pw.Container(
+        padding: const pw.EdgeInsets.all(8.0),
+        child: pw.Text(
+          texts[1],
+          style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          textAlign: pw.TextAlign.right,
+        ),
+      ),
+    ],
   );
 }
 
@@ -487,8 +521,9 @@ pw.TableRow pwTableRow(List<String> texts) {
 
 
 
+
 Future<pw.PageTheme> _myPageTheme(PdfPageFormat format) async {
-  final logoImage = pw.MemoryImage((await rootBundle.load('lib/images/Star-Tech.png')).buffer.asUint8List());
+  final logoImage = pw.MemoryImage((await rootBundle.load('lib/images/DailyStar.png')).buffer.asUint8List());
 
   return pw.PageTheme(
       margin: const pw.EdgeInsets.symmetric(horizontal: 1 * PdfPageFormat.cm, vertical: 0.5 * PdfPageFormat.cm),
@@ -499,7 +534,7 @@ Future<pw.PageTheme> _myPageTheme(PdfPageFormat format) async {
           child: pw.Watermark(
               angle: 7,
               child: pw.Opacity(
-                  opacity: 0.3,
+                  opacity: 0.2,
                   child: pw.Image(
                     alignment: pw.Alignment.center,
                     logoImage,

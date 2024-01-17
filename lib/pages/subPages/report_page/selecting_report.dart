@@ -122,6 +122,7 @@ class _ReportPageState extends State<ReportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xffe9f0fd),
       appBar: AppBar(
         backgroundColor: const Color(0xff162b4a),
         title: Text(
@@ -289,24 +290,6 @@ class _ReportPageState extends State<ReportPage> {
                                 disableOrEnable: false,
                                 controller: empCodeController,
                               ),
-                              CustomDatePickerField(
-                                controller: fromDateController,
-                                hintText: 'Select a date',
-                                labelText: 'From Date',
-                                disableOrEnable: true,
-                                borderColor: 0xFFBCC2C2,
-                                filled: true,
-                                onTap: () => fromSelectDate(),
-                              ),
-                              CustomDatePickerField(
-                                controller: endDateController,
-                                hintText: 'Select a date',
-                                labelText: 'End Date',
-                                disableOrEnable: true,
-                                borderColor: 0xFFBCC2C2,
-                                filled: true,
-                                onTap: () => endSelectDate(),
-                              ),
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
                                 child: ElevatedButton(
@@ -317,7 +300,12 @@ class _ReportPageState extends State<ReportPage> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => LPdfPage(),
+                                        builder: (context) => LPdfPage(
+                                          userName: widget.userName,
+                                          empCode: widget.empCode,
+                                          companyID: widget.companyID,
+                                          companyName: widget.companyName,
+                                        ),
                                       ),
                                     );
                                   },

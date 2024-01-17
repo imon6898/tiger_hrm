@@ -1,25 +1,55 @@
-import 'package:flutter/material.dart';
-import 'Components/custom_edit_table_hr.dart';
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
-class LeaveApproveByHr extends StatefulWidget {
+import 'dart:convert';
+
+import 'package:dropdown_textfield/dropdown_textfield.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
+
+import '../../../Coustom_widget/coustom_text field.dart';
+import 'Components/custom_edit_table_sup.dart';
+import '../../../test2.dart';
+
+class SupApproveLeavesPage extends StatefulWidget {
+
   final String userName;
   final String empCode;
   final String companyID;
   final String companyName;
-  final String reportTo;
-  const LeaveApproveByHr({
-    super.key,
+  //final String token;
+  const SupApproveLeavesPage({super.key,
     required this.userName,
     required this.empCode,
     required this.companyID,
     required this.companyName,
-    required this.reportTo,
+    //required this.token,
   });
+
   @override
-  State<LeaveApproveByHr> createState() => _LeaveApproveByHrState();
+  State<SupApproveLeavesPage> createState() => _SupApproveLeavesPageState();
 }
 
-class _LeaveApproveByHrState extends State<LeaveApproveByHr> {
+class _SupApproveLeavesPageState extends State<SupApproveLeavesPage> {
+  TextEditingController forwardToIDController = TextEditingController();
+  TextEditingController forwardToNameController = TextEditingController();
+  TextEditingController forwardToDesignationController = TextEditingController();
+  TextEditingController remarkController = TextEditingController();
+
+  // Utility function to handle date conversion
+  DateTime? parseApiDate(String dateString) {
+    if (dateString == "0001-01-01T00:00:00") {
+      return null; // Return null for the special case
+    }
+    return DateTime.parse(dateString);
+  }
+
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,14 +65,14 @@ class _LeaveApproveByHrState extends State<LeaveApproveByHr> {
         title: const Text(
           style:
           TextStyle(color: Colors.white, fontSize: 30, fontFamily: 'Kanit'),
-          'Leave Approve By HR',
+          'Supervisor By Leave Approv',
           textAlign: TextAlign.center,
         ),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-
+            SizedBox(height: 10,),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Container(
@@ -54,18 +84,16 @@ class _LeaveApproveByHrState extends State<LeaveApproveByHr> {
                   scrollDirection: Axis.horizontal,
                   child: Padding(
                     padding: EdgeInsets.all(10),
-                    child: CustomEditTableHr(
+                    child: CustomTableSup(
                       //token: widget.token,
-                      userName: widget.userName,
                       empCode: widget.empCode,
                       companyID: widget.companyID,
-                      companyName: widget.companyName,
-                      reportTo: widget.reportTo,
                     ),
                   ),
                 ),
               ),
             ),
+
 
 
 

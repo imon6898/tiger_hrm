@@ -1,4 +1,4 @@
-class LeaveData {
+class LeaveDataForHR {
   final String empCode;
   final String empName;
   final String applyDate;
@@ -20,7 +20,7 @@ class LeaveData {
   final String userName;
   final String authorityEmpcode;
 
-  LeaveData({
+  LeaveDataForHR({
     required this.empCode,
     required this.empName,
     required this.applyDate,
