@@ -70,7 +70,7 @@ class _PdfPageState extends State<PdfPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xff162b4a),
-        title: Text('Pdf',
+        title: Text('Attendance Pdf',
           style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.white

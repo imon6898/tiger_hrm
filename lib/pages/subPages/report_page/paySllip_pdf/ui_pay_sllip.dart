@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'package:flutter/material.dart';
-import 'package:tiger_erp_hrm/Coustom_widget/Textfield.dart';
 import 'package:http/http.dart' as http;
-import '../../../../LoginApiController/loginController.dart';
+import 'package:tiger_erp_hrm/Coustom_widget/Textfield.dart';
+import 'package:dropdown_textfield/dropdown_textfield.dart';
+import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
 import 'pdf_page.dart';
 
 class CustomDropdown extends StatefulWidget {
@@ -12,7 +12,9 @@ class CustomDropdown extends StatefulWidget {
   final String empCode;
   final String companyID;
   final String companyName;
-  CustomDropdown({super.key,
+
+  CustomDropdown({
+    super.key,
     required this.userName,
     required this.empCode,
     required this.companyID,
@@ -24,11 +26,12 @@ class CustomDropdown extends StatefulWidget {
 }
 
 class _CustomDropdownState extends State<CustomDropdown> {
-
   TextEditingController empCodeController = TextEditingController();
   SingleValueDropDownController itemController = SingleValueDropDownController();
   FocusNode searchFocusNode = FocusNode();
   FocusNode textFieldFocusNode = FocusNode();
+  String? selectedCategoryId;
+  List<DropDownValueModel> periodList = [];
 
   @override
   void initState() {
@@ -37,13 +40,9 @@ class _CustomDropdownState extends State<CustomDropdown> {
     fetchPeriodList();
   }
 
-
-  List<DropDownValueModel> periodList = [];
-  late String selectedCategoryId;
-
   Future<void> fetchPeriodList() async {
     var headers = {
-      'Authorization': BaseUrl.authorization,
+      'Authorization': '${BaseUrl.authorization}',
     };
 
     var request = http.Request(
@@ -57,17 +56,13 @@ class _CustomDropdownState extends State<CustomDropdown> {
         await http.Client().send(request),
       );
       if (response.statusCode == 200) {
-        // Parse the JSON response
         List<dynamic> data = jsonDecode(response.body);
-
-        // Extract periodName and id from each item in the response
         List<DropDownValueModel> fetchedList = data
             .map((item) => DropDownValueModel(
           name: item['periodName'],
           value: item['id'].toString(),
         ))
             .toList();
-
         setState(() {
           periodList = fetchedList;
         });
@@ -84,7 +79,7 @@ class _CustomDropdownState extends State<CustomDropdown> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(height: 20,),
+        SizedBox(height: 20),
         CustomTextFields(
           labelText: 'Employee Code',
           hintText: 'Employee Code',
@@ -97,7 +92,7 @@ class _CustomDropdownState extends State<CustomDropdown> {
           padding: const EdgeInsets.symmetric(horizontal: 30.0),
           child: DropDownTextField(
             textFieldDecoration: InputDecoration(
-              contentPadding: EdgeInsets.symmetric(vertical:10,horizontal: 20),
+              contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(width: 2, color: Color(0xFFBCC2C2)),
               ),
@@ -111,7 +106,6 @@ class _CustomDropdownState extends State<CustomDropdown> {
               labelText: 'Select Month',
               border: InputBorder.none,
             ),
-
             controller: itemController,
             clearOption: false,
             textFieldFocusNode: textFieldFocusNode,
@@ -121,34 +115,48 @@ class _CustomDropdownState extends State<CustomDropdown> {
             enableSearch: true,
             dropDownList: periodList,
             onChanged: (val) {
-              // Extract and store the ID from the selected value
               selectedCategoryId = val.value;
               print('Selected value: $val');
             },
           ),
         ),
-
-        SizedBox(height: 10,),
-
+        SizedBox(height: 10),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30.0),
           child: ElevatedButton(
             onPressed: () async {
-              // Call the function to generate the PDF and get the File object
-              //File pdfFile = await generatePdf();
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PSPdfPage(
-                    selectedCategoryId: int.parse(selectedCategoryId),
-                    userName: widget.userName,
-                    empCode: widget.empCode,
-                    companyID: widget.companyID,
-                    companyName: widget.companyName,
+              if (selectedCategoryId == null || selectedCategoryId!.isEmpty) {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Error'),
+                      content: Text('Please select a month'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('OK'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PSPdfPage(
+                      selectedCategoryId: int.parse(selectedCategoryId!),
+                      userName: widget.userName,
+                      empCode: widget.empCode,
+                      companyID: widget.companyID,
+                      companyName: widget.companyName,
+                    ),
                   ),
-                ),
-              );
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
@@ -168,7 +176,7 @@ class _CustomDropdownState extends State<CustomDropdown> {
               ],
             ),
           ),
-        )
+        ),
       ],
     );
   }

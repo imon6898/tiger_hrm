@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/customTextFieldbyimam.dart';
+import 'assets_pdf/assets_pdf_page.dart';
 import 'paySllip_pdf/ui_pay_sllip.dart';
 import '../../../Coustom_widget/CustomDropdownField.dart';
 import '../../../Coustom_widget/Textfield.dart';
@@ -23,12 +24,14 @@ class ReportPage extends StatefulWidget {
   final String empCode;
   final String companyID;
   final String companyName;
+  final String gradeValue;
 
   const ReportPage({super.key,
     required this.userName,
     required this.empCode,
     required this.companyID,
     required this.companyName,
+    required this.gradeValue,
   });
 
   @override
@@ -240,7 +243,7 @@ class _ReportPageState extends State<ReportPage> {
                 )
             ),
 
-            SizedBox(height: 10,),
+/*            SizedBox(height: 10,),
 
             Card(
                 child: ListTile(
@@ -335,6 +338,77 @@ class _ReportPageState extends State<ReportPage> {
                   },
                 )
             ),
+
+            SizedBox(height: 10,),
+
+            Card(
+                child: ListTile(
+                  title: const Text('Assets Report'),
+                  subtitle: const Text('Check Your Assets Report'),
+                  onTap: () {
+                    Get.bottomSheet(
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Color(0xffefebef),
+                            borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),
+                          ),
+                          child: Column(
+                            children: [
+                              SizedBox(height: 10),
+                              CustomTextFields(
+                                labelText: 'Employee Code',
+                                hintText: 'Employee Code',
+                                borderColor: 0xFFBCC2C2,
+                                filled: true,
+                                disableOrEnable: false,
+                                controller: empCodeController,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    // Call the function to generate the PDF and get the File object
+                                    //File pdfFile = await generatePdf();
+
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => APdfPage(
+                                          userName: widget.userName,
+                                          empCode: widget.empCode,
+                                          companyID: widget.companyID,
+                                          companyName: widget.companyName,
+                                          gradeValue: widget.gradeValue,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    shape: StadiumBorder(),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
+                                        child: Icon(Icons.save_as_outlined, color: Colors.white),
+                                      ),
+                                      Text(
+                                        'Generate Pdf',
+                                        style: TextStyle(fontSize: 20, color: Colors.white),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        )
+                    );
+                  },
+                )
+            ),*/
 
           ],
         ),

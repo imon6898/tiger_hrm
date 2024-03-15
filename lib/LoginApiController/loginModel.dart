@@ -1,51 +1,61 @@
-
+// loginModel.dart
 
 import 'dart:convert';
+import 'package:geolocator/geolocator.dart';
+import 'package:hive/hive.dart';
 
-LoginModel loginModelFromJson(String str) => LoginModel.fromJson(json.decode(str));
+part 'loginModel.g.dart';
 
-String loginModelToJson(LoginModel data) => json.encode(data.toJson());
-
+@HiveType(typeId: 0)
 class LoginModel {
-  String token;
-  int loginId;
-  String userName;
-  String empName;
-  String loginPassword;
-  int userTypeId;
-  String empCode;
-  String isActive;
-  int companyId;
-  String companyName;
-  int gender;
-  int gradeValue;
-  String department;
-  String reportTo;
+  String? token;
+  String? loginId;
+  String? userName;
+  String? empName;
+  String? empMail;
+  String? loginPassword;
+  int? userTypeId;
+  String? empCode;
+  String? isActive;
+  int? companyId;
+  String? companyName;
+  int? gender;
+  int? gradeValue;
+  String? department;
+  String? reportTo;
+  String? recommendToEmail;
   dynamic recommendTo;
 
+  @HiveField(8)
+  Position? location;
+
   LoginModel({
-    required this.token,
-    required this.loginId,
-    required this.userName,
-    required this.empName,
-    required this.loginPassword,
-    required this.userTypeId,
-    required this.empCode,
-    required this.isActive,
-    required this.companyId,
-    required this.companyName,
-    required this.gender,
-    required this.gradeValue,
-    required this.department,
-    required this.reportTo,
-    required this.recommendTo,
+    this.token,
+    this.loginId,
+    this.userName,
+    this.empName,
+    this.empMail,
+    this.loginPassword,
+    this.userTypeId,
+    this.empCode,
+    this.isActive,
+    this.companyId,
+    this.companyName,
+    this.gender,
+    this.gradeValue,
+    this.department,
+    this.reportTo,
+    this.recommendTo,
+    this.recommendToEmail,
   });
+
 
   factory LoginModel.fromJson(Map<String, dynamic> json) => LoginModel(
     token: json["token"],
     loginId: json["loginID"],
     userName: json["userName"],
     empName: json["empName"],
+    empMail: json["empMail"],
     loginPassword: json["loginPassword"],
     userTypeId: json["userTypeId"],
     empCode: json["empCode"],
@@ -57,6 +67,7 @@ class LoginModel {
     department: json["department"],
     reportTo: json["reportTo"],
     recommendTo: json["recommendTo"],
+    recommendToEmail: json["recommendToEmail"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -64,6 +75,7 @@ class LoginModel {
     "loginID": loginId,
     "userName": userName,
     "empName": empName,
+    "empMail": empMail,
     "loginPassword": loginPassword,
     "userTypeId": userTypeId,
     "empCode": empCode,
@@ -75,5 +87,6 @@ class LoginModel {
     "department": department,
     "reportTo": reportTo,
     "recommendTo": recommendTo,
+    "recommendToEmail": recommendToEmail,
   };
 }

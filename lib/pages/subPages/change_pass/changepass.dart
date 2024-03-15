@@ -209,7 +209,7 @@ class _ChangePassState extends State<ChangePass> {
     final headers = {
       'accept': '*/*',
       'Content-Type': 'application/json',
-      'Authorization': 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==',
+      'Authorization': '${BaseUrl.authorization}',
     };
 
     try {

@@ -44,7 +44,7 @@ class _AttendancePageState extends State<AttendancePage> {
   void fetchEmployeeData() async {
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==',
+      'Authorization': '${BaseUrl.authorization}',
     };
 
     var response = await http.get(
@@ -198,8 +198,8 @@ class _AttendancePageState extends State<AttendancePage> {
             ElevatedButton(
               onPressed: () {
                 // Replace officeLat and officeLon with your office location coordinates
-                double officeLat = 23.7460321;
-                double officeLon = 90.3906891;
+                double officeLat = 23.7557605;//23.7460321;
+                double officeLon = 90.3905825;//90.3906891;
 
                 // Calculate the distance between current location and office location
                 double distance = calculateDistance(

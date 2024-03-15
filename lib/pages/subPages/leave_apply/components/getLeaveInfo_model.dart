@@ -37,6 +37,7 @@ class GetLeaveInfoModel {
 
 class GetLeaveInfoStatusModels3 {
   final String typeName;
+  final String applicationDate;
   final String accepteDuration;
   final String remarks;
   final String empName;
@@ -44,6 +45,7 @@ class GetLeaveInfoStatusModels3 {
 
   GetLeaveInfoStatusModels3({
     required this.typeName,
+    required this.applicationDate,
     required this.accepteDuration,
     required this.remarks,
     required this.empName,
@@ -53,6 +55,7 @@ class GetLeaveInfoStatusModels3 {
   factory GetLeaveInfoStatusModels3.fromJson(Map<String, dynamic> json) {
     return GetLeaveInfoStatusModels3(
       typeName: json['typeName'] ?? '',
+      applicationDate: json['applicationDate'] ?? '',
       accepteDuration: json['accepteDuration'] ?? '',
       remarks: json['remarks'] ?? '',
       empName: json['empName'] ?? '',
@@ -64,6 +67,7 @@ class GetLeaveInfoStatusModels3 {
   String toString() {
     return 'LeaveDatafor{'
         'typeName: $typeName, '
+        'applicationDate: $applicationDate, '
         'accepteDuration: $accepteDuration, '
         'remarks: $remarks, '
         'empName: $empName, '

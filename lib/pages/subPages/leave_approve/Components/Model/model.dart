@@ -1,6 +1,7 @@
 class LeaveDatafor{
   final String empCode;
   final String empName;
+  final String empEmail;
   final String designation;
   final String department;
   final String typeName;
@@ -23,10 +24,15 @@ class LeaveDatafor{
   final String userName;
   final String authorityEmpcode;
   final String yyyymmdd;
+  final String recommandToEmail;
+  final String recommandedName;
+  final String reportToEmail;
+  final String reportToEmpName;
 
   LeaveDatafor({
     required this.empCode,
     required this.empName,
+    required this.empEmail,
     required this.designation,
     required this.department,
     required this.typeName,
@@ -49,12 +55,17 @@ class LeaveDatafor{
     required this.userName,
     required this.authorityEmpcode,
     required this.yyyymmdd,
+    required this.recommandToEmail,
+    required this.recommandedName,
+    required this.reportToEmail,
+    required this.reportToEmpName,
   });
 
   factory LeaveDatafor.fromJson(Map<String, dynamic> json) {
     return LeaveDatafor(
       empCode: json['empCode'] ?? '',
       empName: json['empName'] ?? '',
+      empEmail: json['empEmail'] ?? '',
       designation: json['designation'] ?? '',
       department: json['department'] ?? '',
       typeName: json['typeName'] ?? '',
@@ -77,6 +88,10 @@ class LeaveDatafor{
       userName: json['userName'] ?? '',
       authorityEmpcode: json['authorityEmpcode'] ?? '',
       yyyymmdd: json['yyyymmdd'] ?? '',
+      recommandToEmail: json['recommandToEmail'] ?? '',
+      recommandedName: json['recommandedName'] ?? '',
+      reportToEmail: json['reportToEmail'] ?? '',
+      reportToEmpName: json['reportToEmpName'] ?? '',
     );
   }
 
@@ -106,6 +121,10 @@ class LeaveDatafor{
         'emgAddress: $emgAddress, '
         'userName: $userName, '
         'authorityEmpcode: $authorityEmpcode, '
-        'yyyymmdd: $yyyymmdd}';
+        'yyyymmdd: $yyyymmdd, '
+        'recommandToEmail: $recommandToEmail, '
+        'recommandedName: $recommandedName, '
+        'reportToEmail: $reportToEmail, '
+        'reportToEmpName: $reportToEmpName, ';
   }
 }

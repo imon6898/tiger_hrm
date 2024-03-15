@@ -1,14 +1,18 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
 import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart';
 
 class NeumorphicButton extends StatefulWidget {
-  final String imagePath;
+  final String? imagePathAsset;
+  final String? imagePathMemory;
   final String buttonText;
   final Function onTap;
 
   NeumorphicButton({
     Key? key,
-    required this.imagePath,
+    this.imagePathAsset,
+    this.imagePathMemory,
     required this.buttonText,
     required this.onTap,
   }) : super(key: key);
@@ -59,10 +63,26 @@ class _NeumorphicButtonState extends State<NeumorphicButton> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
+                widget.imagePathMemory != null
+                    ?Container(
+                  height: 80,
+                  width: 75,
+                  child: ClipOval(
+                      child:  Image.memory(
+                        // Display image from memory if available
+                        base64Decode(widget.imagePathMemory!),
+                        fit: BoxFit.fill, // Use BoxFit.fill to avoid cropping
+                      )
+                  ),
+                )
+                    : Container(
                   height: 70,
                   width: 70,
-                  child: Image.asset(widget.imagePath),
+                  child: Image.asset(
+                    // Otherwise, display image from asset
+                    widget.imagePathAsset!,
+                    fit: BoxFit.cover,
+                  ),
                 ),
 
                 Text(

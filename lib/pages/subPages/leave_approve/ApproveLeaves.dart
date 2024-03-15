@@ -52,7 +52,7 @@ class _ApproveLeavesPageState extends State<ApproveLeavesPage> {
     empCode = empCode ?? 'defaultEmpCode';
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': BaseUrl.authorization,
+      'Authorization': '${BaseUrl.authorization}',
     };
 
     var response = await http.get(

@@ -50,7 +50,7 @@ class _PSPdfPageState extends State<PSPdfPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xff162b4a),
         title: Text(
-          'Pdf',
+          'Pay Slip Pdf',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.white,

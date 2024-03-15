@@ -15,7 +15,7 @@ import '../../../../LoginApiController/loginController.dart';
 
 Future<Map<String, dynamic>?> featchGetPaySlip(String empCode, selectedCategoryId, String companyID) async {
   var headers = {
-    'Authorization': BaseUrl.authorization,
+    'Authorization': '${BaseUrl.authorization}',
   };
 
   var request = http.Request(
@@ -40,10 +40,12 @@ Future<Map<String, dynamic>?> featchGetPaySlip(String empCode, selectedCategoryI
     var department = data['department'];
     var periodName = data['periodName'];
     var basic = data['basic'];
+    var mobile = data['mobile'];
+    var conveyance = data['conveyance'];
     var remuneration = data['remuneration'];
     var houseRent = data['houseRent'];
     var convAllo = data['convAllo'];
-    var mediAllo = data['mediAllo'];
+    var medical = data['medical'];
     var grossPay = data['grossPay'];
     var carAllo = data['carAllo'];
     var spacilAllo = data['spacilAllo'];
@@ -81,10 +83,12 @@ Future<Map<String, dynamic>?> featchGetPaySlip(String empCode, selectedCategoryI
       'department' : department,
       'periodName' : periodName,
       'basic' : basic,
+      'mobile' : mobile,
+      'conveyance' : conveyance,
       'remuneration' : remuneration,
       'houseRent' : houseRent,
       'convAllo' : convAllo,
-      'mediAllo' : mediAllo,
+      'medical' : medical,
       'grossPay' : grossPay,
       'carAllo' : carAllo,
       'spacilAllo' : spacilAllo,
@@ -144,10 +148,12 @@ Future<Uint8List> generatePdfPS(
   final String department = paySlipData['department'] ?? '';
   final String periodName = paySlipData['periodName'] ?? '';
   final int basic = paySlipData['basic'] as int? ?? 0;
+  final int mobile = paySlipData['mobile'] as int? ?? 0;
   final int remuneration = paySlipData['remuneration'] as int? ?? 0;
   final int houseRent = paySlipData['houseRent'] as int? ?? 0;
+  final int conveyance = paySlipData['conveyance'] as int? ?? 0;
   final int convAllo = paySlipData['convAllo'] as int? ?? 0;
-  final int mediAllo = paySlipData['mediAllo'] as int? ?? 0;
+  final int medical = paySlipData['medical'] as int? ?? 0;
   final int grossPay = paySlipData['grossPay'] as int? ?? 0;
   final int carAllo = paySlipData['carAllo'] as int? ?? 0;
   final int spacilAllo = paySlipData['spacilAllo'] as int? ?? 0;
@@ -323,13 +329,15 @@ Future<Uint8List> generatePdfPS(
                                 children: [
                                   pwTableRow(['BASIC :', basic.toString()]),
                                   pwTableRow(['HOUSE RENT:', houseRent.toString()]),
+                                  pwTableRow(['Conveyance:', conveyance.toString()]),
                                   pwTableRow(['ENTERTAINMENT:', '0']),
-                                  pwTableRow(['MEDICAL:', mediAllo.toString()]),
+                                  pwTableRow(['MEDICAL:', medical.toString()]),
                                   pwTableRow(['TRANSPORT:', convAllo.toString()]),
-                                  pwTableRow(['SPECIAL ALLOWNCE:', '0']),
-                                  pwTableRow(['MOBILE ALLOWNCE:', '0']),
+                                  pwTableRow(['SPECIAL ALLOWNCE:', spacilAllo.toString()]),
+                                  pwTableRow(['MOBILE ALLOWNCE:', mobile.toString()]),
                                   pwTableRow(['ARREAR:', '0']),
-                                  pwTableRowWithBold(['TOTAL ADDITION:', grossPay.toString()]),
+                                  pwTableRow(['OTHER ADDI:', otherAddi.toString()]),
+                                  pwTableRowWithBold(['TOTAL ADDITION:', totalAddi.toString()]),
                                 ],
                               ),
                             ],
@@ -345,6 +353,7 @@ Future<Uint8List> generatePdfPS(
                                 border: pw.TableBorder.all(color: PdfColors.black),
                                 children: [
                                   // Row 1
+                                  pwTableRow(['SALARY DEDUCT', salaryDeduct.toString()]),
                                   pwTableRow(['INCOME TAX:', incomeTax.toString()]),
                                   pwTableRow(['PROVIDENT FUND:', '0']),
                                   pwTableRow(['ADVANCE SALARY/LOAN:', '0']),
@@ -352,7 +361,8 @@ Future<Uint8List> generatePdfPS(
                                   pwTableRow(['LEAVE WITHOUT PAY:', '0']),
                                   pwTableRow(['OTHERS:', '0']),
                                   pwTableRow(['HOUSING POLICY:', '0']),
-                                  pwTableRow(['None', '0']),
+                                  pwTableRow(['', '']),
+                                  pwTableRow(['', '']),
                                   pwTableRowWithBold(['TOTAL DEDUCTION:', totalDeduct.toString()]),
                                 ],
                               ),
@@ -365,6 +375,7 @@ Future<Uint8List> generatePdfPS(
 
                   ],
                 ),
+
 
                 pw.Table(
                   border: pw.TableBorder.all(color: PdfColors.black),
@@ -468,6 +479,7 @@ pw.TableRow pwTableRow(List<String> texts) {
     children: [
       // Left-aligned text
       pw.Container(
+        height: 30,
         padding: const pw.EdgeInsets.all(8.0),
         alignment: pw.Alignment.centerLeft,
         child: pw.Text(
@@ -477,6 +489,7 @@ pw.TableRow pwTableRow(List<String> texts) {
       ),
       // Right-aligned text
       pw.Container(
+        height: 30,
         padding: const pw.EdgeInsets.all(8.0),
         alignment: pw.Alignment.centerRight,
         child: pw.Text(
@@ -494,6 +507,7 @@ pw.TableRow pwTableRowWithBold(List<String> texts) {
     children: [
       // Left-aligned text
       pw.Container(
+        height: 30,
         padding: const pw.EdgeInsets.all(8.0),
         child: pw.Text(
           texts[0],
@@ -502,6 +516,7 @@ pw.TableRow pwTableRowWithBold(List<String> texts) {
       ),
       // Right-aligned text
       pw.Container(
+        height: 30,
         padding: const pw.EdgeInsets.all(8.0),
         child: pw.Text(
           texts[1],
@@ -547,7 +562,7 @@ Future<void> saveAsFile(BuildContext context, printing.LayoutCallback build, Pdf
 
   final appDocDir = await getApplicationDocumentsDirectory();
   final appDocPath = appDocDir.path;
-  final file = File('$appDocPath/document.pdf');
+  final file = File('$appDocPath/PaySlip.pdf');
   print('Save as file ${file.path}...');
   await file.writeAsBytes(bytes);
   await OpenFile.open(file.path);

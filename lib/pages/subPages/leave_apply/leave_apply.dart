@@ -1,18 +1,14 @@
 // ignore_for_file: prefer_const_constructors, prefer_final_fields, prefer_const_literals_to_create_immutables
 
 import 'dart:convert';
-import 'dart:core';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'package:intl/intl.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/coustom_text%20field.dart';
 import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
-import 'package:tiger_erp_hrm/LoginApiController/loginModel.dart';
-import 'package:tiger_erp_hrm/test2.dart';
-
-import '../../../Coustom_widget/neumorphic_button.dart';
-import '../approve_attend.dart';
+import '../../../Coustom_widget/fileSelector.dart';
 import 'components/getLeaveInfo_model.dart';
 
 
@@ -56,6 +52,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
   TextEditingController employeeNameController = TextEditingController();
   TextEditingController designationController = TextEditingController();
   TextEditingController departmentController = TextEditingController();
+  TextEditingController empMailController = TextEditingController();
 
   TextEditingController _fromDateController = TextEditingController();
   TextEditingController _endDateController = TextEditingController();
@@ -81,10 +78,12 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
   TextEditingController applyToEmployeeIdController = TextEditingController();
   TextEditingController applyToEmployeeNameController = TextEditingController();
   TextEditingController applyToEmployeedesignationController = TextEditingController();
+  TextEditingController applyToEmployeeReportToEmailController = TextEditingController();
 
   TextEditingController applyToEmployeeIdSupController = TextEditingController();
   TextEditingController applyToEmployeeNameSupController = TextEditingController();
   TextEditingController applyToEmployeedesignationSupController = TextEditingController();
+  TextEditingController applyToEmployeeRecommendToEmailSupController = TextEditingController();
 
   TextEditingController dutiesEmployeeIdController = TextEditingController();
   TextEditingController dutiesEmployeeNameController = TextEditingController();
@@ -102,7 +101,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
   void fetchEmployeeData() async {
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': BaseUrl.authorization,
+      'Authorization': '${BaseUrl.authorization}',
     };
 
     var response = await http.get(
@@ -122,14 +121,17 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
           employeeNameController.text = firstItem['empName'] ?? '';
           designationController.text = firstItem['designation'] ?? '';
           departmentController.text = firstItem['department'] ?? '';
+          empMailController.text = firstItem['empMail'] ?? '';
 
           applyToEmployeeIdController.text = firstItem['reportTo'] ?? '';
           applyToEmployeeNameController.text = firstItem['reportToEmpName'] ?? '';
           applyToEmployeedesignationController.text = firstItem['reportToDesignation'] ?? '';
+          applyToEmployeeReportToEmailController.text = firstItem['reportToEmail'] ?? '';
 
           applyToEmployeeIdSupController.text = firstItem['recommendTo'] ?? '';
           applyToEmployeeNameSupController.text = firstItem['recommendToEmpName'] ?? '';
           applyToEmployeedesignationSupController.text = firstItem['recommendToDesignation'] ?? '';
+          applyToEmployeeRecommendToEmailSupController.text = firstItem['recommendToEmail'] ?? '';
         });
       }
     } else {
@@ -138,12 +140,26 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
   }
 
 
-  Future<void> submitLeaveApplication(int leaveTypeId) async {
+  Future<void> submitLeaveApplication(int leaveTypeId,selectedLeaveTypeName, List<File> selectedFiles) async {
     final uri = Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/leave/leave-apply');
     final headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==',
+      'Authorization': '${BaseUrl.authorization}',
     };
+
+    // Check if recommendTo is null or not
+    final grandtype = applyToEmployeeIdSupController.text.isEmpty ? "2" : "0";
+
+    final toEmail = applyToEmployeeRecommendToEmailSupController.text.isNotEmpty
+        ? applyToEmployeeRecommendToEmailSupController.text
+        : applyToEmployeeReportToEmailController.text;
+
+    final toEmailName = applyToEmployeeNameSupController.text.isNotEmpty
+        ? applyToEmployeeNameSupController.text
+        : applyToEmployeeNameController.text;
+
+    print('toEmail: $toEmail');
+    print('toEmailName: $toEmailName');
 
     final requestBody = {
 
@@ -156,7 +172,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
       "leaveTypedID": leaveTypeId,
       "unAccepteDuration": 0,
       "referanceEmpcode": dutiesEmployeeIdController.text,
-      "grandtype": "string",
+      "grandtype": grandtype,
       //"yyyymmdd": _applyDateController.text,
       "withpay": currentOptions == 'Active' ? "1" : "0",
       "appType": "0",
@@ -207,6 +223,28 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
           ),
         );
 
+        await sendEmailforLeaveApply(
+            employeeNameController.text,
+            employeeIdController.text,
+            applyToEmployeeNameSupController.text,
+            applyToEmployeeRecommendToEmailSupController.text,
+
+            toEmail,
+            toEmailName,
+
+            applyToEmployeeNameController.text,
+            applyToEmployeeReportToEmailController.text,
+
+            dutiesEmployeeNameController.text,
+            _reasonController.text,
+            _fromDateController.text,
+            _endDateController.text,
+            int.parse(updateLeaveDuration.text),
+            selectedLeaveTypeName,
+            _selectedFiles);
+
+        print("sendEmail: ${await sendEmailforLeaveApply}");
+
         print(await response.body);
         // Handle the response data here
       } else {
@@ -236,12 +274,67 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
     }
   }
 
+  List<File> _selectedFiles = [];
+
+  Future<void> sendEmailforLeaveApply(
+      employeeNameController,
+      employeeIdController,
+      applyToEmployeeNameSupController,
+      applyToEmployeeRecommendToEmailSupController,
+
+      toEmail,
+      toEmailName,
+      applyToEmployeeNameController,
+      applyToEmployeeReportToEmailController,
+
+      dutiesEmployeeNameController,
+      _reasonController,
+      _fromDateController,
+      _endDateController,
+      updateLeaveDuration,
+      selectedLeaveTypeName,
+      List<File> attachments
+      ) async {
+
+    print("toEmailsent:$toEmail");
+
+    var headers = {
+      'Authorization': '${BaseUrl.authorization}',
+    };
+    var request = http.MultipartRequest('POST', Uri.parse('${BaseUrl.baseUrl}/api/Email/Send'));
+    request.fields.addAll({
+      'ToEmail': toEmail,
+      'Subject': '$selectedLeaveTypeName Application',
+      'Body': '''Dear $toEmailName,
+      
+      \nI hope this message finds you well. $employeeNameController(ID: $employeeIdController) Apply to request $selectedLeaveTypeName from $_fromDateController to $_endDateController due to $updateLeaveDuration Days. $_reasonController.
+      
+      \nThank you for your understanding and support. Please let me know if there are any additional steps I should take.
+      
+      \nBest regards,
+      \nDS HRMS''',
+    });
+    for (var attachment in attachments) {
+      request.files.add(await http.MultipartFile.fromPath('Attachments', attachment.path));
+    }
+
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      print(await response.stream.bytesToString());
+    } else {
+      print(response.reasonPhrase);
+    }
+  }
+
 
   void fetchDutiesEmployeeData(String empCode) async {
     empCode = empCode ?? 'defaultEmpCode';
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==',
+      'Authorization': '${BaseUrl.authorization}',
     };
 
     var response = await http.get(
@@ -264,8 +357,6 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
       print('Failed to fetch employee data: ${response.reasonPhrase}');
     }
   }
-
-
 
   Future<void> _fromSelectDate() async {
     final picked = await showDatePicker(
@@ -308,11 +399,6 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
     }
   }
 
-
-
-
-
-
   String? selectedLeaveType;
   bool isDropdownVisible = false;
 
@@ -322,7 +408,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
       var response = await http.get(
         Uri.parse(url),
         headers: {
-          'Authorization': 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==',
+          'Authorization': '${BaseUrl.authorization}',
         },
       );
 
@@ -344,7 +430,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
   Future<void> fetchGetLeaveInfo() async {
     try {
       var headers = {
-        'Authorization': BaseUrl.authorization,
+        'Authorization': '${BaseUrl.authorization}',
       };
       var request = http.Request(
         'GET',
@@ -360,7 +446,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
 
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();
-        print("this is get Data from:: $responseBody");
+        print("this is get Data from: $responseBody");
 
         final List<dynamic> data = json.decode(responseBody);
 
@@ -389,7 +475,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
   Future<void> fetchGetLeaveInfo1(String selectedCategoryId) async {
     try {
       var headers = {
-        'Authorization': BaseUrl.authorization,
+        'Authorization': '${BaseUrl.authorization}',
       };
       var request = http.Request(
         'GET',
@@ -433,7 +519,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
 
   Future<void> fetchPeriodList() async {
     var headers = {
-      'Authorization': BaseUrl.authorization,
+      'Authorization': '${BaseUrl.authorization}',
     };
 
     var request = http.Request(
@@ -473,7 +559,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
   Future<void> fetchGetLeaveInfoStatus3() async {
     try {
       var headers = {
-        'Authorization': BaseUrl.authorization,
+        'Authorization': '${BaseUrl.authorization}',
       };
       var request = http.Request(
         'GET',
@@ -497,6 +583,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
           getLeaveInfoStatus3 = dataGetLeaveInfo.map((item) {
             return GetLeaveInfoStatusModels3(
               typeName: item['typeName'] ?? '',
+              applicationDate: item['applicationDate'] ?? '',
               accepteDuration: item['accepteDuration'].toString(),
               remarks: item['remarks'] ?? '',
               empName: item['empName'] ?? '',
@@ -565,178 +652,6 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
             child: Column(
              children: [
                 SizedBox(height: 10,),
-
-               GestureDetector(
-                 onTap: () {
-                   setState(() {
-                     isExpandedYourDetails = !isExpandedYourDetails;
-                   });
-                 },
-                 child: Padding(
-                   padding: EdgeInsets.only(left: 10, top: 10, right: 10),
-                   child: Container(
-                     height: 50,
-                     width: MediaQuery.of(context).size.width,
-                     decoration: BoxDecoration(
-                       border: Border.all(width: 2),
-                       borderRadius: BorderRadius.circular(10),
-                     ),
-
-                     child: Center(
-                       child: Row(
-                         children: [
-                           Expanded(
-                             child: Divider(
-                               thickness: 1.5,
-                             ),
-                           ),
-                           Padding(
-                             padding: const EdgeInsets.all(8.0),
-                             child: Text('Your Details',style: TextStyle(fontSize: 16)),
-                           ),
-                           Expanded(
-                             child: Divider(
-                               thickness: 1.5,
-                             ),
-                           ),
-                         ],
-                       ),
-                     ),
-                   ),
-                 ),
-               ),
-
-               Padding(
-                 padding: const EdgeInsets.only(top: 8.0),
-                 child: AnimatedContainer(
-                   //color: Colors.yellow,
-                   duration: Duration(milliseconds: 700),
-                   height: isExpandedYourDetails ? 420 : 0,
-                   width: MediaQuery.of(context).size.width,
-                   child: isExpandedYourDetails
-                       ? SingleChildScrollView(
-                         child: Column(
-                                                children: [
-
-                         CustomTextField(
-                           controller: employeeIdController,
-                           label: 'Employee ID',
-                           disableOrEnable: false,
-                           hintText: '',
-
-                         ),
-
-                         CustomTextField(
-                           controller: employeeNameController,
-                           label: 'Employee Name',
-                           disableOrEnable: false,
-                           hintText: '',
-
-                         ),
-                         CustomTextField(
-                           controller: designationController,
-                           label: 'Designation',
-                           disableOrEnable: false,
-                           hintText: '',
-
-                         ),
-
-                         CustomTextField(
-                           controller: departmentController,
-                           label: 'Department',
-                           disableOrEnable: false,
-                           hintText: '',
-
-                         ),
-
-                                                ],
-                                              ),
-                       )
-                       : null,
-                 ),
-               ),
-
-
-               GestureDetector(
-                 onTap: () {
-                   setState(() {
-                     isExpandedApplyToSup  = !isExpandedApplyToSup ;
-                   });
-                 },
-                 child: Padding(
-                   padding: EdgeInsets.only(left: 10, top: 10, right: 10),
-                   child: Container(
-                     height: 50,
-                     width: MediaQuery.of(context).size.width,
-                     decoration: BoxDecoration(
-                       border: Border.all(width: 2),
-                       borderRadius: BorderRadius.circular(10),
-                     ),
-                     child: Center(
-                       child: Row(
-                         children: [
-                           Expanded(
-                             child: Divider(
-                               thickness: 1.5,
-                             ),
-                           ),
-                           Padding(
-                             padding: const EdgeInsets.all(8.0),
-                             child: Text('Supervisor',style: TextStyle(fontSize: 16)),
-                           ),
-                           Expanded(
-                             child: Divider(
-                               thickness: 1.5,
-                             ),
-                           ),
-                         ],
-                       ),
-                     ),
-                   ),
-                 ),
-               ),
-
-               Padding(
-                 padding: const EdgeInsets.only(top: 8.0),
-                 child: AnimatedContainer(
-                   //color: Colors.yellow,
-                   duration: Duration(milliseconds: 700),
-                   height: isExpandedApplyToSup  ? 320 : 0,
-                   width: MediaQuery.of(context).size.width,
-                   child: isExpandedApplyToSup
-                       ? SingleChildScrollView(
-                     child: Column(
-                       children: [
-
-                         CustomTextField(
-                           controller: applyToEmployeeIdSupController,
-                           label: 'Employee ID',
-                           disableOrEnable: false,
-                           hintText: '',
-
-                         ),
-                         CustomTextField(
-                           controller: applyToEmployeeNameSupController,
-                           label: 'Employee Name',
-                           disableOrEnable: false,
-                           hintText: '',
-
-                         ),
-                         CustomTextField(
-                           controller: applyToEmployeedesignationSupController,
-                           label: 'Employee Designation',
-                           disableOrEnable: false,
-                           hintText: '',
-
-                         ),
-
-                       ],
-                     ),
-                   )
-                       : null,
-                 ),
-               ),
-
 
                GestureDetector(
                  onTap: () {
@@ -861,8 +776,8 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
                  padding: const EdgeInsets.only(top: 8.0),
                  child: AnimatedContainer(
                    //color: Colors.yellow,
-                   duration: Duration(milliseconds: 1000),
-                   height: isExpandedApplication  ? 970 : 0,
+                   duration: Duration(milliseconds: 800),
+                   height: isExpandedApplication  ? 500 : 0,
                    width: MediaQuery.of(context).size.width,
                    child: isExpandedApplication
                        ? SingleChildScrollView(
@@ -1057,6 +972,18 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
                                ),
                              ),
 
+                             Padding(
+                               padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10),
+                               child: FileSelector(
+                                 onFilesSelected: (files) {
+                                   print('Attached file(s): $files');
+                                   _selectedFiles = files;
+                                   // Handle the selected files here
+                                   // You can update the state or perform any other action as needed
+                                 },
+                               ),
+                             ),
+
 
                            ],
                          ),
@@ -1156,8 +1083,9 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
                        onPressed: () {
                          //submitLeaveApplication();
                          if (leaveTypes != null && leaveTypes!.isNotEmpty) {
-                           int selectedLeaveTypeId = leaveTypes![0]['typeee'] as int; // Use 'as int' to specify the type
-                           submitLeaveApplication(selectedLeaveTypeId);
+                           int selectedLeaveTypeId = leaveTypes![0]['typeee'] as int;
+                           String selectedLeaveTypeName = leaveTypes![0]['typeName'] as String;
+                           submitLeaveApplication(selectedLeaveTypeId, selectedLeaveTypeName, _selectedFiles); // Pass _selectedFiles
                          } else {
                            // Handle the case where leaveTypes is null or empty
                          }
@@ -1325,10 +1253,10 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
                            (index) => DataRow(
                          cells: [
                            DataCell(Text((index + 1).toString())),
-                           DataCell(Text(DateFormat("dd-MMM").format(DateTime.parse(getLeaveInfoList[index].applyDate)))),
-                           DataCell(Text(DateFormat("dd-MMM").format(DateTime.parse(getLeaveInfoList[index].startDate)))),
-                           DataCell(Text(DateFormat("dd-MMM").format(DateTime.parse(getLeaveInfoList[index].endDate)))),
-                           DataCell(Text(getLeaveInfoList[index].days.toString())),
+                           DataCell(Text(getLeaveInfoList[index].applyDate != null ? DateFormat("dd-MMM-yyyy").format(DateTime.tryParse(getLeaveInfoList[index].applyDate!) ?? DateTime.now()) : "")),
+                           DataCell(Text(getLeaveInfoList[index].startDate != null ? DateFormat("dd-MMM-yyyy").format(DateTime.tryParse(getLeaveInfoList[index].startDate!) ?? DateTime.now()) : "")),
+                           DataCell(Text(getLeaveInfoList[index].endDate != null ? DateFormat("dd-MMM-yyyy").format(DateTime.tryParse(getLeaveInfoList[index].endDate!) ?? DateTime.now()) : "")),
+                           DataCell(Text(getLeaveInfoList[index].days != null ? getLeaveInfoList[index].days.toString() : "")),
                          ],
                        ),
                      ),
@@ -1357,6 +1285,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
                      columns: [
                        DataColumn(label: Text('#SN')),
                        DataColumn(label: Text('Leave Type')),
+                       DataColumn(label: Text('Application Date')),
                        DataColumn(label: Text('Duration')),
                        DataColumn(label: Text('Remark')),
                        DataColumn(label: Text('Last Position')),
@@ -1368,6 +1297,8 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
                          cells: [
                            DataCell(Text((index + 1).toString())),
                            DataCell(Text(getLeaveInfoStatus3[index].typeName)),
+                           DataCell(Text(DateFormat("dd-MMM-yyyy").format(DateTime.parse(getLeaveInfoStatus3[index].applicationDate)))),
+                           //DataCell(Text(getLeaveInfoStatus3[index].applicationDate)),
                            DataCell(Text(getLeaveInfoStatus3[index].accepteDuration.toString())),
                            DataCell(Text(getLeaveInfoStatus3[index].remarks)),
                            DataCell(Text(getLeaveInfoStatus3[index].empName)),

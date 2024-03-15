@@ -21,10 +21,10 @@ import '../../../../LoginApiController/loginController.dart';
 Future<dynamic> fetchGetRptLoan(String empCode, String companyID) async {
   var headers = {
     'accept': '*/*',
-    'Authorization': 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==',
+    'Authorization': '${BaseUrl.authorization}',
   };
 
-  var url = Uri.parse('http://175.29.186.86:7021/api/v1/salary/get-rpt-loaninfoledgerreport/$empCode/$companyID');
+  var url = Uri.parse('${BaseUrl.baseUrl}/api/v1/salary/get-rpt-loaninfoledgerreport/$empCode/$companyID');
 
   var response = await http.get(url, headers: headers);
 
@@ -414,7 +414,7 @@ Future<void> saveAsFile(
 
   final appDocDir = await getApplicationDocumentsDirectory();
   final appDocPath = appDocDir.path;
-  final file = File('$appDocPath/document.pdf');
+  final file = File('$appDocPath/Loan.pdf');
   print('Save as file ${file.path}...');
   await file.writeAsBytes(bytes);
   await OpenFile.open(file.path);

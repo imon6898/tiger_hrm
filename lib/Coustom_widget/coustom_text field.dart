@@ -22,8 +22,8 @@ class CustomTextField extends StatelessWidget {
   final double? textFieldHeight;
   final Icon? prefixIcon;
   final VoidCallback? onTap;
-  final ValueChanged<String>? onChanged; // Use ValueChanged<String>
-
+  final ValueChanged<String>? onChanged;
+ // Use ValueChanged<String>
   @override
   Widget build(BuildContext context) {
     return Container(

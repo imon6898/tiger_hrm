@@ -13,6 +13,8 @@ import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
 import 'package:tiger_erp_hrm/pages/subPages/leave_approve/Components/Model/model.dart';
 import 'dart:convert';
 
+import 'leave_approved_api_service/leaveApproved_apiService.dart';
+
 
 int leaveId=0;
 String selectedOption = '';
@@ -90,7 +92,7 @@ class _CustomTableState extends State<CustomTable> {
     empCode = empCode ?? 'defaultEmpCode';
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': BaseUrl.authorization,
+      'Authorization': '${BaseUrl.authorization}',
     };
 
     var response = await http.get(
@@ -117,7 +119,7 @@ class _CustomTableState extends State<CustomTable> {
   Future<void> fetchRecommendLeave(int leaveId, String remark, String statusDate) async {
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': BaseUrl.authorization,
+      'Authorization': '${BaseUrl.authorization}',
     };
 
     var request = http.Request(
@@ -132,7 +134,7 @@ class _CustomTableState extends State<CustomTable> {
       "companyID": widget.companyID,
       "remarks": remark,
       "type": 1,
-      "status": 2,
+      "status": 0,
 
 
       // "id": 0,
@@ -179,7 +181,7 @@ class _CustomTableState extends State<CustomTable> {
   Future<void> fetchPendingToApproveLeave(int leaveId, String remark, String statusDate) async {
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': BaseUrl.authorization,
+      'Authorization': '${BaseUrl.authorization}',
     };
 
     var request = http.Request(
@@ -195,7 +197,7 @@ class _CustomTableState extends State<CustomTable> {
       "companyID": widget.companyID,
       "remarks": remark,
       "type": 2,
-      "status": 2,
+      "status": 0,
 
 
       // "id": 0,
@@ -239,10 +241,22 @@ class _CustomTableState extends State<CustomTable> {
     }
   }
 
-  Future<void> fetchCancelLeave(int leaveId, String remark, String statusDate) async {
+  Future<void> fetchCancelLeave(
+      int leaveId,
+      String remark,
+      String statusDate,
+      String empName,
+      String empEmail,
+      String startDate,
+      String endDate,
+      String typeName,
+      String payType,
+      String days,
+      String reportToEmpName
+      ) async {
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': BaseUrl.authorization,
+      'Authorization': '${BaseUrl.authorization}',
     };
 
     var request = http.Request(
@@ -259,7 +273,7 @@ class _CustomTableState extends State<CustomTable> {
       "companyID": widget.companyID,
       "remarks": remark,
       "type": 3,
-      "status": -1,
+      "status": 0,
 
 
 
@@ -289,8 +303,25 @@ class _CustomTableState extends State<CustomTable> {
         ),
       );
 
+      ApiLeaveApprovBadgeService.fetchGetWaitingLeaveForApprove(
+        companyID: widget.companyID,
+        empCode: widget.empCode,
+      );
+
       // Refresh the page by re-fetching the leave applications
       await fetchGetWaitingLeaveForApprove();
+
+      await sendEmailForCancelLeavefromSup(
+        empName,
+        empEmail,
+        startDate,
+        endDate,
+        typeName,
+        payType,
+        days,
+        reportToEmpName,
+      );
+
     } else {
       print(response.reasonPhrase);
 
@@ -303,6 +334,63 @@ class _CustomTableState extends State<CustomTable> {
       );
     }
   }
+
+
+  Future<void> sendEmailForCancelLeavefromSup(
+      String empName,
+      String empEmail,
+      String startDate,
+      String endDate,
+      String typeName,
+      String payType,
+      String days,
+      String reportToEmpName
+      ) async {
+
+    print('Employee Name: $empName');
+    print('Employee Email: $empEmail');
+    print('Start Date: $startDate');
+    print('End Date: $endDate');
+    print('Type Name: $typeName');
+    print('Pay Type: $payType');
+    print('Days: $days');
+    print('Report To Employee Name: $reportToEmpName');
+
+
+    var headers = {
+      'Authorization': '${BaseUrl.authorization}',
+    };
+    var request = http.MultipartRequest('POST', Uri.parse('${BaseUrl.baseUrl}/api/Email/Send'));
+    request.fields.addAll({
+      'ToEmail': empEmail, // Use reportToEmail here
+      'Subject': '$reportToEmpName Cancel Your $typeName Application',
+      'Body': '''Dear $empName,
+      
+      \nI hope this message finds you well. Unfortunately, $reportToEmpName has decided to cancel your $typeName application that was scheduled from $startDate to $endDate, which was initially recommended for $days Days.
+
+      \nWe apologize for any inconvenience this may cause. If you have any questions or concerns, please feel free to reach out to us.
+      
+      \nThank you for your understanding and support.
+      
+      \nBest regards,
+      \nDS HRMS''',
+    });
+    // for (var attachment in attachments) {
+    //   request.files.add(await http.MultipartFile.fromPath('Attachments', attachment.path));
+    // }
+
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      print(await response.stream.bytesToString());
+    } else {
+      print(response.reasonPhrase);
+    }
+  }
+
+
 
   Color getRowColor(int index) {
     if (index % 3 == 0) {
@@ -328,7 +416,7 @@ class _CustomTableState extends State<CustomTable> {
 
   Future<void> fetchGetWaitingLeaveForApprove() async {
     var headers = {
-      'Authorization': BaseUrl.authorization,
+      'Authorization': '${BaseUrl.authorization}',
     };
     var request = http.Request(
       'GET',
@@ -357,6 +445,7 @@ class _CustomTableState extends State<CustomTable> {
           return LeaveDatafor(
             empCode: item['empCode'] ?? '',
             empName: item['empName'] ?? '',
+            empEmail: item['empEmail'] ?? '',
             designation: item['designation'] ?? '',
             department: item['department'] ?? '',
             typeName: item['typeName'] ?? '',
@@ -379,6 +468,10 @@ class _CustomTableState extends State<CustomTable> {
             userName: item['userName'] ?? '',
             authorityEmpcode: item['authorityEmpcode'] ?? '',
             yyyymmdd: item['yyyymmdd'] ?? '', // Add yyyymmdd assignment
+            recommandToEmail: item['recommandToEmail'] ?? '',
+            recommandedName: item['recommandedName'] ?? '',
+            reportToEmail: item['reportToEmail'] ?? '',
+            reportToEmpName: item['reportToEmpName'] ?? '',
           );
         }).toList();
         isFetchingData = false;
@@ -437,7 +530,7 @@ class _CustomTableState extends State<CustomTable> {
           const DataColumn(label: Text('LeaveType')),
           const DataColumn(label: Text('Day(s)')),
           const DataColumn(label: Text('PayType')),
-          const DataColumn(label: Text('Recommend')),
+          //const DataColumn(label: Text('Recommend')),
           const DataColumn(label: Text('Approve')),
           const DataColumn(label: Text('Cancel')),
           const DataColumn(label: Text('Edit')),
@@ -468,9 +561,14 @@ class _CustomTableState extends State<CustomTable> {
                 DataCell(Text(data.typeName.toString())),
                 DataCell(Text(data.days.toString())),
                 DataCell(Text(data.payType.toString())),
-                DataCell(
+                /*DataCell(
                   ElevatedButton(
                     onPressed: () {
+                      // Set the selectedLeaveId when the button is clicked
+                      setState(() {
+                        leaveId = data.id;
+                      });
+
                       // Add your action for "Recommend to" here
                       Get.defaultDialog(
                         title: 'Recommend To',
@@ -522,8 +620,12 @@ class _CustomTableState extends State<CustomTable> {
                         ),
                         confirm: ElevatedButton(
                           onPressed: () {
-                            // Call the fetchRecommendLeave function when the Confirm button is clicked
-                            fetchRecommendLeave(leaveId, remarkController.text, DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now().toUtc()));
+                            // Call the fetchRecommendLeave function with the selectedLeaveId
+                            fetchRecommendLeave(
+                                leaveId,
+                                remarkController.text,
+                                DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now().toUtc())
+                            );
                             Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
@@ -554,10 +656,15 @@ class _CustomTableState extends State<CustomTable> {
                       backgroundColor: const Color(0xff1c4d75),
                     ),
                   ),
-                ),
+                ),*/
                 DataCell(
                   ElevatedButton(
                     onPressed: () {
+                      // Set the selectedLeaveId when the button is clicked
+                      setState(() {
+                        leaveId = data.id;
+                      });
+
                       // Add your action for "Pending, Recommended" here
                       Get.defaultDialog(
                         title: 'Approved Application',
@@ -593,19 +700,16 @@ class _CustomTableState extends State<CustomTable> {
                         confirm: ElevatedButton(
                           onPressed: () {
                             // Retrieve the text entered in the TextFields
-                            String requestFrom = 'Get the text from the "Request From" TextField here';
+                            // You can use the values from the TextFields as needed
                             String comments = 'Get the text from the "Comments" TextField here';
                             String remark = 'Get the text from the "Remark" TextField here';
 
                             // Process the data as needed
-                            print('Request From: $requestFrom');
                             print('Comments: $comments');
                             print('Remark: $remark');
 
-                            fetchPendingToApproveLeave(leaveId, remarkController.text, DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now().toUtc()));
+                            fetchPendingToApproveLeave(leaveId, remark, DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now().toUtc()));
                             Navigator.pop(context);
-
-                            //fetchRecommendLeave();
                           },
                           style: ElevatedButton.styleFrom(
                             primary: Colors.green, // Change the button color to green
@@ -629,7 +733,6 @@ class _CustomTableState extends State<CustomTable> {
                           ),
                         ),
                       );
-
                     },
                     child: const Text("Pending", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),),
                     style: ElevatedButton.styleFrom(
@@ -640,10 +743,15 @@ class _CustomTableState extends State<CustomTable> {
                 DataCell(
                   ElevatedButton(
                     onPressed: () {
+                      // Set the selectedLeaveId when the button is clicked
+                      setState(() {
+                        leaveId = data.id;
+                      });
+
                       Get.defaultDialog(
                         title: 'Cancel Application',
-                        titlePadding: const EdgeInsets.all(5), // Removed const from EdgeInsets.all(5)
-                        contentPadding: const EdgeInsets.all(10), // Removed const from EdgeInsets.all(10)
+                        titlePadding: const EdgeInsets.all(5),
+                        contentPadding: const EdgeInsets.all(10),
                         content: Column(
                           children: [
                             const Text('Are you sure you want to Cancel ?'),
@@ -659,11 +767,29 @@ class _CustomTableState extends State<CustomTable> {
                         ),
                         confirm: ElevatedButton(
                           onPressed: () {
+                            // Retrieve the text entered in the TextField
                             String remark = remarkController.text;
+
+                            // Format the status date
                             String statusDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now().toUtc());
+
+                            // Process the data as needed
                             print('Remark: $remark');
-                            print("check confirm button is leave Type id $leaveId");
-                            fetchCancelLeave(leaveId, remark, statusDate); // Pass statusDate here
+                            print('LeaveId: $leaveId');
+
+                            // Call the fetchCancelLeave function with the selectedLeaveId
+                            fetchCancelLeave(leaveId, remark, statusDate,
+                              data.empName,
+                              data.empEmail,
+
+                                DateFormat("yyyy-MM-dd").format(DateTime.parse("${data.startDate}")),
+                                DateFormat("yyyy-MM-dd").format(DateTime.parse("${data.endDate}")),
+                              data.typeName,
+                              data.payType,
+                              data.days,
+                              data.reportToEmpName
+                            );
+
                             Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
@@ -697,14 +823,22 @@ class _CustomTableState extends State<CustomTable> {
                 DataCell(
                   ElevatedButton(
                     onPressed: () {
+                      // Set the selectedLeaveId when the button is clicked
+                      setState(() {
+                        leaveId = data.id;
+                      });
+
+                      // Call the handleEditButton function with the selectedLeaveId
                       handleEditButton(data);
+
                     },
                     child: const Text("Edit", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                     ),
                   ),
-                )
+                ),
+
 
               ]
           );
@@ -721,6 +855,7 @@ class _CustomTableState extends State<CustomTable> {
     editApplideDayController.text = selectedLeave.days;
     editApplideDayChangeController.text = selectedLeave.days;
     editLeaveTypeController.text = selectedLeave.typeName.toString();
+    forwardToIDController.text = selectedLeave.applyTo.toString();
 
 
     showModalBottomSheet(
@@ -906,6 +1041,10 @@ class _CustomTableState extends State<CustomTable> {
                     ElevatedButton(
                       onPressed: () {
 
+                        fetchRecommendLeaveEdit(
+                          selectedLeave,
+                          forwardToIDController.text,
+                        );
                         fetchUpdateLeaveApprove(
                           editEmployeeName.text,
                           editLeaveTypeController.text,
@@ -997,6 +1136,61 @@ class _CustomTableState extends State<CustomTable> {
   }
 
 
+  Future<void> fetchRecommendLeaveEdit(
+      LeaveDatafor selectedLeave,
+      String forwardToID,
+      ) async {
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': '${BaseUrl.authorization}',
+    };
+
+    var request = http.Request(
+      'POST',
+      Uri.parse('${BaseUrl.baseUrl}/api/${v.v1}/UpdateRecommand'),
+    );
+
+    request.body = json.encode({
+      "id": selectedLeave.id,
+      "reqFrom": widget.empCode,
+      "reqTo": "",
+      "companyID": widget.companyID,
+      "remarks":"",
+      "type": 2,
+      "status": 0,
+    });
+    print('Request Body: ${request.body}');
+
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      print(await response.stream.bytesToString());
+
+      // Show a SnackBar to indicate success
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Leave application Forward successfully.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Refresh the page by re-fetching the leave applications
+      await fetchGetWaitingLeaveForApprove();
+    } else {
+      print(response.reasonPhrase);
+
+      // Show an error SnackBar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to Forward leave application: ${response.reasonPhrase}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
 
   Future<void> fetchUpdateLeaveApprove(
       String employeeName,
@@ -1024,7 +1218,7 @@ class _CustomTableState extends State<CustomTable> {
 
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': BaseUrl.authorization,
+      'Authorization': '${BaseUrl.authorization}',
     };
 
     var request = http.Request(
@@ -1046,7 +1240,7 @@ class _CustomTableState extends State<CustomTable> {
         "accepteDuration": int.parse(acceptedDays),
         "leaveTypedID": selectedLeave.leaveTypedID,
         "unAccepteDuration": int.parse(appliedDays),
-        "grandtype": 2,
+        //"grandtype": 1,
         "withpay": payType,
         "appType": selectedLeave.appType,
         "companyID": selectedLeave.companyID,

@@ -12,61 +12,39 @@ import 'package:open_file/open_file.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../../LoginApiController/loginController.dart';
+
 
 ///api integration
 
-/*
-Future<Map<String, dynamic>> getIndividualInOutReport(String empCode, String companyID, String fromDate, String endDate) async {
-  var headers = {
 
-    'Authorization': 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==',
+
+
+Future<List<dynamic>> getIndividualInOutReport(String empCode, String companyID, String fromDate, String endDate) async {
+  var headers = {
+    'Authorization': '${BaseUrl.authorization}',
   };
 
-  var url = Uri.parse('http://175.29.186.86:7021/api/v1/atten/get-individual-inout-report/$empCode/$companyID/$fromDate/$endDate');
-
-  var response = await http.get(url, headers: headers);
-
-  if (response.statusCode == 200) {
-    var jsonResponse = json.decode(response.body);
-    if (jsonResponse is Map<String, dynamic>) {
-// Save data to shared preferences
-      saveDataToSharedPreferences(jsonResponse);
-      return jsonResponse;
-    }
-  } else {
-    print('Request failed with status: ${response.statusCode}');
-  }
-
-  return {}; // or throw an exception
-}
-*/
-
-
-
-Future<dynamic> getIndividualInOutReport(String empCode, String companyID, String fromDate, String endDate) async {
-  var headers = {
-
-    'Authorization': 'Basic SFJEb3ROZXRBcHA6aHJAMTIzNA==',
-  };
-
-  var url = Uri.parse('http://175.29.186.86:7021/api/v1/atten/get-individual-inout-report/$empCode/$companyID/$fromDate/$endDate');
+  var url = Uri.parse('${BaseUrl.baseUrl}/api/v1/atten/get-individual-inout-report/$empCode/$companyID/$fromDate/$endDate');
 
   var response = await http.get(url, headers: headers);
 
   if (response.statusCode == 200) {
     var jsonResponseList = json.decode(response.body);
-    if (jsonResponseList is List && jsonResponseList.isNotEmpty) {
 
+    if (jsonResponseList is List && jsonResponseList.isNotEmpty) {
       // Save data to shared preferences
       saveDataToSharedPreferences(jsonResponseList[0]);
-
       return jsonResponseList;
+    } else {
+      // No data found, return an empty list
+      return [];
     }
   } else {
     print('Request failed with status: ${response.statusCode}');
   }
 
-  return {};
+  return []; // or throw an exception
 }
 
 void saveDataToSharedPreferences( data) async {
@@ -87,13 +65,6 @@ Future<Uint8List> generatePdf(final PdfPageFormat format, String empCode,
 
   List individualInOutReport = await getIndividualInOutReport(empCode, companyID, fromDate, endDate);
 
-/*  Map<String, dynamic> individualInOutReport = await getIndividualInOutReport(empCode, companyID, fromDate, endDate);
-
-  if (individualInOutReport.isEmpty) {
-    // Handle the case where the API response is empty.
-    print('Data is null');
-    return Uint8List(0); // or throw an exception
-  }*/
 
 
   print("individualInOutReport: $individualInOutReport");
@@ -120,167 +91,177 @@ Future<Uint8List> generatePdf(final PdfPageFormat format, String empCode,
       build: (final context) {
         final List<pw.Widget> content = [];
 
-        content.add(
-          pw.Container(
-            padding: const pw.EdgeInsets.only(left: 30, bottom: 20),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.center,
-              mainAxisAlignment: pw.MainAxisAlignment.start,
-              children: [
-                pw.Padding(padding: const pw.EdgeInsets.only(top: 20)),
-                pw.Row(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Expanded(
-                      child: pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Row(
-                            children: [
-                              pw.Text('Emp.Code: ', textAlign: pw.TextAlign.right),
-                              pw.Text(individualInOutReport[0]['empCodS'].toString(), textAlign: pw.TextAlign.right),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    pw.Expanded(
-                      child: pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.end,
-                        children: [
-                          pw.Row(
-                            children: [
-                              pw.Text('Department: ', textAlign: pw.TextAlign.right),
-                              pw.Text(individualInOutReport[0]['department'].toString(), textAlign: pw.TextAlign.right),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 5),
-                pw.Row(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Expanded(
-                      child: pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Row(
-                            children: [
-                              pw.Text('Emp Name: ', textAlign: pw.TextAlign.right),
-                              pw.Text(individualInOutReport[0]['empName'].toString(), textAlign: pw.TextAlign.right),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    pw.Expanded(
-                      child: pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.end,
-                        children: [
-                          pw.Row(
-                            children: [
-                              pw.Text('Designation: ', textAlign: pw.TextAlign.right),
-                              pw.Text(individualInOutReport[0]['designation'].toString(), textAlign: pw.TextAlign.right),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 5),
-                pw.Row(
-                  children: [
-                    pw.Text('Branch Name: ', textAlign: pw.TextAlign.right),
-                    pw.Text(individualInOutReport[0]['officeBranch'].toString(), textAlign: pw.TextAlign.right),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-
-        // Table create
-        List<pw.TableRow> tableRows = [];
-        tableRows.add(
-          pw.TableRow(
-            children: [
-              _buildTableCell('SL.'),
-              _buildTableCell('Date'),
-              _buildTableCell('Day'),
-              _buildTableCell('In Time'),
-              _buildTableCell('Out Time'),
-              _buildTableCell('W/Hour'),
-              _buildTableCell('Late'),
-              _buildTableCell('Earlier'),
-              _buildTableCell('Status'),
-              _buildTableCell('Comment'),
-            ],
-
-            decoration: pw.BoxDecoration(
-              color: PdfColor.fromHex("#DDDDDD"),
-            ),
-          ),
-        );
-
-
-        if (individualInOutReport.isNotEmpty) {
-          for (int i = 0; i < individualInOutReport.length; i++) {
-            Map rowData = individualInOutReport[i];
-
-            tableRows.add(
-              pw.TableRow(
+        if (individualInOutReport.isEmpty) {
+          content.add(
+              pw.Column(
+                mainAxisAlignment: pw.MainAxisAlignment.center,
                 children: [
-                  _buildTableDataCell((i + 1).toString()),
-                  _buildTableDataCell(rowData['date'] ?? ''),
-                  _buildTableDataCell(rowData['day'] ?? ''),
-                  _buildTableDataCell(rowData['login'] ?? ''),
-                  _buildTableDataCell(rowData['logout'] ?? ''),
-                  _buildTableDataCell(rowData['workingHour'] ?? ''),
-                  _buildTableDataCell(rowData['lates'] ?? ''),
-                  _buildTableDataCell(rowData['earlier'] ?? ''),
-                  _buildTableDataCell(rowData['status'] ?? ''),
-                  _buildTableDataCell(rowData['comment'] ?? ''),
+                  pw.Center(
+                    child: pw.Text('Data not found', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 30)),
+                  ),
+                  // Other widgets can be added below if needed
+                ],
+              )
+          ); // Add a message when data is null
+        } else {
+          content.add(
+            pw.Container(
+              padding: const pw.EdgeInsets.only(left: 30, bottom: 20),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                mainAxisAlignment: pw.MainAxisAlignment.start,
+                children: [
+                  pw.Padding(padding: const pw.EdgeInsets.only(top: 20)),
+                  pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Expanded(
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Row(
+                              children: [
+                                pw.Text('Emp.Code: ', textAlign: pw.TextAlign.right),
+                                pw.Text(individualInOutReport[0]['empCodS'].toString(), textAlign: pw.TextAlign.right),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      pw.Expanded(
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.end,
+                          children: [
+                            pw.Row(
+                              children: [
+                                pw.Text('Department: ', textAlign: pw.TextAlign.right),
+                                pw.Text(individualInOutReport[0]['department'].toString(), textAlign: pw.TextAlign.right),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 5),
+                  pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Expanded(
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Row(
+                              children: [
+                                pw.Text('Emp Name: ', textAlign: pw.TextAlign.right),
+                                pw.Text(individualInOutReport[0]['empName'].toString(), textAlign: pw.TextAlign.right),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      pw.Expanded(
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.end,
+                          children: [
+                            pw.Row(
+                              children: [
+                                pw.Text('Designation: ', textAlign: pw.TextAlign.right),
+                                pw.Text(individualInOutReport[0]['designation'].toString(), textAlign: pw.TextAlign.right),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
                 ],
               ),
-            );
+            ),
+          );
 
 
-            content.add(
-              pw.Table(
-                border: pw.TableBorder.all(),
-                columnWidths: {
-                  0: const pw.FixedColumnWidth(20), // SL.
-                  1: const pw.FlexColumnWidth(1.2),     // Date
-                  2: const pw.FlexColumnWidth(),     // Day
-                  3: const pw.FlexColumnWidth(),     // In Time
-                  4: const pw.FlexColumnWidth(),     // Out Time
-                  5: const pw.FlexColumnWidth(),     // W/Hour
-                  6: const pw.FlexColumnWidth(),     // Late
-                  7: const pw.FlexColumnWidth(),     // Earlier
-                  8: const pw.FlexColumnWidth(),     // Status
-                  9: const pw.FlexColumnWidth(),     // Comment
-                },
-                children: tableRows,
+          List<pw.TableRow> tableRows = [];
+          tableRows.add(
+            pw.TableRow(
+              children: [
+                _buildTableCell('SL.'),
+                _buildTableCell('Date'),
+                _buildTableCell('Day'),
+                _buildTableCell('In Time'),
+                _buildTableCell('Out Time'),
+                _buildTableCell('W/Hour'),
+                //_buildTableCell('Late'),
+                _buildTableCell('Earlier'),
+                _buildTableCell('Status'),
+                _buildTableCell('Comment'),
+              ],
+
+              decoration: pw.BoxDecoration(
+                color: PdfColor.fromHex("#DDDDDD"),
               ),
-            );
-            tableRows = [];
+            ),
+          );
 
+
+          if (individualInOutReport.isNotEmpty) {
+            for (int i = 0; i < individualInOutReport.length; i++) {
+              Map rowData = individualInOutReport[i];
+
+              tableRows.add(
+                pw.TableRow(
+                  children: [
+                    _buildTableDataCell((i + 1).toString()),
+                    _buildTableDataCell(rowData['date'] ?? ''),
+                    _buildTableDataCell(rowData['day'] ?? ''),
+                    _buildTableDataCell(rowData['login'] ?? ''),
+                    _buildTableDataCell(rowData['logout'] ?? ''),
+                    _buildTableDataCell(rowData['workingHour'] ?? ''),
+                    //_buildTableDataCell(rowData['lates'] ?? ''),
+                    _buildTableDataCell(rowData['earlier'] ?? ''),
+                    _buildTableDataCell(rowData['status'] ?? ''),
+                    _buildTableDataCell(rowData['comment'] ?? ''),
+                  ],
+                ),
+              );
+
+
+              content.add(
+                pw.Table(
+                  border: pw.TableBorder.all(),
+                  columnWidths: {
+                    0: const pw.FixedColumnWidth(20), // SL.
+                    1: const pw.FlexColumnWidth(1.2),     // Date
+                    2: const pw.FlexColumnWidth(),     // Day
+                    3: const pw.FlexColumnWidth(),     // In Time
+                    4: const pw.FlexColumnWidth(),     // Out Time
+                    5: const pw.FlexColumnWidth(),     // W/Hour
+                    6: const pw.FlexColumnWidth(),     // Late
+                    7: const pw.FlexColumnWidth(),     // Earlier
+                    8: const pw.FlexColumnWidth(),     // Status
+                    9: const pw.FlexColumnWidth(),     // Comment
+                  },
+                  children: tableRows,
+                ),
+              );
+              tableRows = [];
+
+            }
+
+            if (tableRows.isNotEmpty) {
+              content.add(pw.Table(border: pw.TableBorder.all(), children: tableRows));
+            }
           }
 
           if (tableRows.isNotEmpty) {
             content.add(pw.Table(border: pw.TableBorder.all(), children: tableRows));
           }
-        } else {
-          print('Data is null');
         }
 
-        if (tableRows.isNotEmpty) {
-          content.add(pw.Table(border: pw.TableBorder.all(), children: tableRows));
-        }
+
+        // Table create
+
         return content;
       },
     ),
@@ -347,7 +328,7 @@ Future<void> saveAsFile(
 
   final appDocDir = await getApplicationDocumentsDirectory();
   final appDocPath = appDocDir.path;
-  final file = File('$appDocPath/document.pdf');
+  final file = File('$appDocPath/Attendance.pdf');
   print('Save as file ${file.path}...');
   await file.writeAsBytes(bytes);
   await OpenFile.open(file.path);
