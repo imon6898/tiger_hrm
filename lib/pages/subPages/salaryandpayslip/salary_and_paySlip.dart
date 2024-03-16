@@ -1,26 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../Coustom_widget/Textfield.dart';
+import '../../../controller/dashboard_controller.dart';
 import '../report_page/assets_pdf/assets_pdf_page.dart';
 import '../report_page/loan_pdf/pdf_page.dart';
 import '../report_page/paySllip_pdf/ui_pay_sllip.dart';
 
 class SalaryAndPaySlip extends StatefulWidget {
-  final String userName;
-  final String empCode;
-  final String companyID;
-  final String companyName;
-  final String gradeValue;
 
-  const SalaryAndPaySlip({
-    super.key,
-    required this.userName,
-    required this.empCode,
-    required this.companyID,
-    required this.companyName,
-    required this.gradeValue,
-  });
+  const SalaryAndPaySlip({super.key});
 
   @override
   State<SalaryAndPaySlip> createState() => _SalaryAndPaySlipState();
@@ -29,20 +17,28 @@ class SalaryAndPaySlip extends StatefulWidget {
 class _SalaryAndPaySlipState extends State<SalaryAndPaySlip> {
 
   TextEditingController empCodeController = TextEditingController();
+  var dashboardControl = Get.put(DashboardController());
 
   @override
   void initState() {
     super.initState();
-    empCodeController.text = widget.empCode;
+    empCodeController.text = dashboardControl.loginModel?.empCode ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
+
+    var userName = dashboardControl.loginModel?.userName ?? '';
+    var empCode = dashboardControl.loginModel?.empCode ?? '';
+    var companyID = dashboardControl.loginModel?.companyId?.toString() ?? '';
+    var companyName = dashboardControl.loginModel?.companyName ?? '';
+    var gradeValue = dashboardControl.loginModel?.gradeValue?.toString() ?? '';
+
     return Scaffold(
-      backgroundColor: Color(0xffe9f0fd),
+      backgroundColor: const Color(0xffe9f0fd),
       appBar: AppBar(
         backgroundColor: const Color(0xff162b4a),
-        title: Text(
+        title: const Text(
           "Salary And PaySlip",
           style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -50,33 +46,33 @@ class _SalaryAndPaySlipState extends State<SalaryAndPaySlip> {
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios,color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios,color: Colors.white),
           onPressed: () { Navigator.pop(context); },
 
         ),
       ),
 
       body: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Column(
           children: [
             Card(
                 child: ListTile(
-                  title: const Text('Pay Sllip'),
+                  title: const Text('Pay Slip'),
                   subtitle: const Text('Check Your Pay Sllip'),
                   onTap: () {
 
                     Get.bottomSheet(
                         Container(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: Color(0xffefebef),
                               borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),
                             ),
                             child: CustomDropdown(
-                              userName: widget.userName,
-                              empCode: widget.empCode,
-                              companyID: widget.companyID,
-                              companyName: widget.companyName,
+                              userName: userName,
+                              empCode: empCode,
+                              companyID: companyID,
+                              companyName: companyName,
                             )
                         )
                     );
@@ -84,7 +80,7 @@ class _SalaryAndPaySlipState extends State<SalaryAndPaySlip> {
                 )
             ),
 
-            SizedBox(height: 10,),
+            const SizedBox(height: 10,),
 
             Card(
                 child: ListTile(
@@ -93,13 +89,13 @@ class _SalaryAndPaySlipState extends State<SalaryAndPaySlip> {
                   onTap: () {
                     Get.bottomSheet(
                         Container(
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: Color(0xffefebef),
                             borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),
                           ),
                           child: Column(
                             children: [
-                              SizedBox(height: 10),
+                              const SizedBox(height: 10),
                               CustomTextFields(
                                 labelText: 'Employee Code',
                                 hintText: 'Employee Code',
@@ -119,23 +115,23 @@ class _SalaryAndPaySlipState extends State<SalaryAndPaySlip> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => LPdfPage(
-                                          userName: widget.userName,
-                                          empCode: widget.empCode,
-                                          companyID: widget.companyID,
-                                          companyName: widget.companyName,
+                                          userName: userName,
+                                          empCode: empCode,
+                                          companyID: companyID,
+                                          companyName: companyName,
                                         ),
                                       ),
                                     );
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.green,
-                                    shape: StadiumBorder(),
+                                    shape: const StadiumBorder(),
                                   ),
-                                  child: Row(
+                                  child: const Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Padding(
-                                        padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
+                                        padding: EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
                                         child: Icon(Icons.save_as_outlined, color: Colors.white),
                                       ),
                                       Text(
@@ -154,7 +150,7 @@ class _SalaryAndPaySlipState extends State<SalaryAndPaySlip> {
                 )
             ),
 
-            SizedBox(height: 10,),
+            const SizedBox(height: 10,),
 
             Card(
                 child: ListTile(
@@ -163,13 +159,13 @@ class _SalaryAndPaySlipState extends State<SalaryAndPaySlip> {
                   onTap: () {
                     Get.bottomSheet(
                         Container(
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: Color(0xffefebef),
                             borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),
                           ),
                           child: Column(
                             children: [
-                              SizedBox(height: 10),
+                              const SizedBox(height: 10),
                               CustomTextFields(
                                 labelText: 'Employee Code',
                                 hintText: 'Employee Code',
@@ -189,24 +185,24 @@ class _SalaryAndPaySlipState extends State<SalaryAndPaySlip> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => APdfPage(
-                                          userName: widget.userName,
-                                          empCode: widget.empCode,
-                                          companyID: widget.companyID,
-                                          companyName: widget.companyName,
-                                          gradeValue: widget.gradeValue,
+                                          userName: userName,
+                                          empCode: empCode,
+                                          companyID: companyID,
+                                          companyName: companyName,
+                                          gradeValue: gradeValue,
                                         ),
                                       ),
                                     );
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.green,
-                                    shape: StadiumBorder(),
+                                    shape: const StadiumBorder(),
                                   ),
-                                  child: Row(
+                                  child: const Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Padding(
-                                        padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
+                                        padding: EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
                                         child: Icon(Icons.save_as_outlined, color: Colors.white),
                                       ),
                                       Text(

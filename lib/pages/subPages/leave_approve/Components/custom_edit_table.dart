@@ -303,7 +303,7 @@ class _CustomTableState extends State<CustomTable> {
         ),
       );
 
-      ApiLeaveApprovBadgeService.fetchGetWaitingLeaveForApprove(
+      ApiLeaveApproveBadgeService.fetchGetWaitingLeaveForApprove(
         companyID: widget.companyID,
         empCode: widget.empCode,
       );

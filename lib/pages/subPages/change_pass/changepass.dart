@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:tiger_erp_hrm/pages/subPages/leave_approve/Components/leave_approved_api_service/leaveApproved_apiService.dart';
 import '../../../Coustom_widget/Textfield.dart';
 import '../../../LoginApiController/loginController.dart';
+import '../../../controller/dashboard_controller.dart';
 
 class ChangePass extends StatefulWidget {
-  final String userName;
-  final String empCode;
-  final String companyID;
-  final String companyName;
 
-  const ChangePass({
-    Key? key,
-    required this.userName,
-    required this.empCode,
-    required this.companyID,
-    required this.companyName,
-  }) : super(key: key);
+  const ChangePass({Key? key}) : super(key: key);
 
   @override
   State<ChangePass> createState() => _ChangePassState();
@@ -28,6 +21,7 @@ class _ChangePassState extends State<ChangePass> {
   TextEditingController oldPasswordController = TextEditingController();
   TextEditingController newPasswordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
+  var dashboardControl = Get.put(DashboardController());
 
   String errorText = '';
   bool passwordMismatch = false;
@@ -36,7 +30,7 @@ class _ChangePassState extends State<ChangePass> {
   @override
   void initState() {
     super.initState();
-    loginIDController = TextEditingController(text: widget.empCode);
+    loginIDController = TextEditingController(text: dashboardControl.loginModel?.empCode);
   }
 
   @override
@@ -203,7 +197,7 @@ class _ChangePassState extends State<ChangePass> {
       "userID": loginIDController.text,
       "oldPassword": oldPasswordController.text,
       "newPassword": newPasswordController.text,
-      "companyID": widget.companyID,
+      "companyID": dashboardControl.loginModel?.companyId,
     };
 
     final headers = {

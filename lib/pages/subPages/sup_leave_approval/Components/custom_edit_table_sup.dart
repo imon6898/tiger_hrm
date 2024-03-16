@@ -12,6 +12,7 @@ import 'package:tiger_erp_hrm/Coustom_widget/Textfield.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/coustom_text%20field.dart';
 import 'package:tiger_erp_hrm/Coustom_widget/custom_text_field2.dart';
 import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
+import 'package:tiger_erp_hrm/controller/dashboard_controller.dart';
 import 'dart:convert';
 
 import 'Model/model_sup.dart';
@@ -206,6 +207,10 @@ class _CustomTableSupState extends State<CustomTableSup> {
           remark,
           reportToEmpName,
         );
+        var controller = Get.put(DashboardController());
+        controller.fetchLeaveApprovalBadgeCount();
+        controller.fetchLeaveApprovalByHrBadgeCount();
+        controller.fetchLeaveApprovalSupBadgeCount();
       } else {
         print(response.reasonPhrase);
 

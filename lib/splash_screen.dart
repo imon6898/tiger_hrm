@@ -1,23 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
-import 'package:tiger_erp_hrm/pages/subPages/leave_approve/Components/leave_approved_api_service/leaveApproved_apiService.dart';
 import 'package:tiger_erp_hrm/utils/geolocator.dart';
-
 import 'LoginApiController/loginModel.dart';
-
+import 'controller/dashboard_controller.dart';
 import 'pages/authPages/login_page.dart';
 import 'pages/home_page/Component/dash_board.dart';
 
 class SplashScreen extends StatefulWidget {
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
 
   @override
   _SplashScreenState createState() => _SplashScreenState();
@@ -28,7 +24,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _rotationAnimation; // Add this animation
-  final LeaveApprovalController _controller = Get.put(LeaveApprovalController());
+  final DashboardController _controller = Get.put(DashboardController());
 
   @override
   Widget build(BuildContext context) {
@@ -63,12 +59,12 @@ class _SplashScreenState extends State<SplashScreen>
                           height: 400,
                         ),
 
-                        SizedBox(height: 100,),
+                        const SizedBox(height: 100,),
                       ],
                     ),
                   ),
 
-                  Text("Powered by Tiger ERP", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),)
+                  const Text("Powered by Tiger ERP", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),)
 
                 ],
               ),
@@ -85,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen>
     checkConnectivityThenNavigate(); // Check connectivity before navigating
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 1),
+      duration: const Duration(seconds: 1),
     );
 
     // Initialize Scale Animation
@@ -129,8 +125,8 @@ class _SplashScreenState extends State<SplashScreen>
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('No Internet Connection'),
-          content: Text('Please connect to the internet to continue.'),
+          title: const Text('No Internet Connection'),
+          content: const Text('Please connect to the internet to continue.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -138,7 +134,7 @@ class _SplashScreenState extends State<SplashScreen>
                 // Exit the app if the user dismisses the dialog
                 exit(0);
               },
-              child: Text('Exit'),
+              child: const Text('Exit'),
             ),
           ],
         );
@@ -147,7 +143,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void navigateToNextScreen() async {
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 2));
 
     // Check if the user is logged in using Hive
     bool isLoggedIn = await checkIfUserIsLoggedIn();
@@ -169,15 +165,14 @@ class _SplashScreenState extends State<SplashScreen>
             // Decode the JSON string more gracefully
             var decodedUserData = json.decode(jsonString);
             if (decodedUserData is Map<String, dynamic>) {
-              var loginModel = LoginModel.fromJson(decodedUserData);
-              _controller.loginModel = loginModel;
+              _controller.loginModel = LoginModel.fromJson(decodedUserData);
               // Get the current location when navigating to DashBoard
-              Position? currentLocation = await LocationService.get();
+              _controller.currentLocation = await LocationService.get();
 
-              print('Decoded userData: $loginModel'); // Add this line for debugging
+              print('Decoded userData: ${_controller.loginModel}'); // Add this line for debugging
 
               // Pass the actual data to DashBoard
-              Get.off(DashBoard(loginModel: loginModel, location: currentLocation));
+              Get.off(const DashBoard());
               return; // Exit the method after navigation
             } else {
               print('Decoded userData is not a Map');
@@ -213,7 +208,7 @@ class _SplashScreenState extends State<SplashScreen>
       snackPosition: SnackPosition.BOTTOM,
     );
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('An error occurred while decoding user data. Please log in again.'),
         duration: Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,

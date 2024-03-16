@@ -26,10 +26,8 @@ class CustomEditTableHr extends StatefulWidget {
   final String companyName;
   final String reportTo;
   final int userTypeId;
-  final Function onCancel;
 
   CustomEditTableHr({//required this.token,
-    required this.onCancel,
     required this.userName,
     required this.empCode,
     required this.companyID,
@@ -237,7 +235,6 @@ class _CustomEditTableHrState extends State<CustomEditTableHr> {
         startDate,
         endDate,
       );
-      widget.onCancel();
     } else {
       print(response.reasonPhrase);
 
@@ -469,13 +466,13 @@ class _CustomEditTableHrState extends State<CustomEditTableHr> {
 
     List<String> selectedOption = options;
 
-    if (widget.userTypeId == 9) {
-      // Fetch data using a different method or API endpoint
-      fetchGetWaitingLeaveForApprove();
-    } else {
-      // Fetch data using the default method
-      fetchDataDefaultMethod(); // Replace with the actual method to fetch data
-    }
+    // if (widget.userTypeId == 9) {
+    //   // Fetch data using a different method or API endpoint
+    //   fetchGetWaitingLeaveForApprove();
+    // } else {
+    //   // Fetch data using the default method
+    //   fetchDataDefaultMethod(); // Replace with the actual method to fetch data
+    // }
   }
 
   Future<Container> fetchDataDefaultMethod() async {

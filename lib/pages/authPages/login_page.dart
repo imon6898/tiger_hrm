@@ -1,6 +1,4 @@
-import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -78,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
         // Navigate to IndexingPage
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => DashBoard(loginModel: loginModel)),
+          MaterialPageRoute(builder: (context) => const DashBoard()),
         );
 
         // Remove this line

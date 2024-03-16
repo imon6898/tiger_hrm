@@ -14,23 +14,21 @@ import '../../Coustom_widget/neumorphic_button.dart';
 import 'package:badges/badges.dart' as custom_badges;
 import '../../LoginApiController/loginController.dart';
 import '../../LoginApiController/loginModel.dart';
+import '../../controller/dashboard_controller.dart';
 import '../subPages/leave_approve/Components/Model/model.dart';
 import '../subPages/leave_approve/Components/leave_approved_api_service/leaveApproved_apiService.dart';
 
 class LeavePagesDashBoard extends StatefulWidget {
-  final LoginModel? loginModel;
 
-  const LeavePagesDashBoard({
-    Key? key,
-    this.loginModel,
-  }) : super(key: key);
+  const LeavePagesDashBoard({Key? key}) : super(key: key);
 
   @override
   State<LeavePagesDashBoard> createState() => LeavePages_DashBoardState();
 }
 
 class LeavePages_DashBoardState extends State<LeavePagesDashBoard> {
-  List<Data> _photos = [
+
+  final List<Data> _photos = [
     Data(image: 'lib/images/A3.png', text: 'Leave\nApply'),
     Data(image: 'lib/images/A5.png', text: 'Supervisor\nLeave Approval'),
     Data(image: 'lib/images/A4.png', text: 'Leave\nApproval'),
@@ -38,16 +36,18 @@ class LeavePages_DashBoardState extends State<LeavePagesDashBoard> {
     Data(image: 'lib/images/A8.png', text: 'Leave\nfor Tour'),
   ];
 
+  var dashboardControl = Get.put(DashboardController());
+
   @override
   Widget build(BuildContext context) {
-    String userName = widget.loginModel?.userName ?? 'N/A';
-    String empCode = widget.loginModel?.empCode ?? 'N/A';
-    int? companyId = widget.loginModel?.companyId;
-    String companyName = widget.loginModel?.companyName ?? 'N/A';
-    String reportTo = widget.loginModel?.reportTo ?? 'N/A';
-    int? gradeValue = widget.loginModel?.gradeValue;
-    int? gender = widget.loginModel?.gender;
-    int? userTypeId = widget.loginModel?.userTypeId;
+    String userName = dashboardControl.loginModel?.userName ?? 'N/A';
+    String empCode = dashboardControl.loginModel?.empCode ?? 'N/A';
+    int? companyId = dashboardControl.loginModel?.companyId;
+    String companyName = dashboardControl.loginModel?.companyName ?? 'N/A';
+    String reportTo = dashboardControl.loginModel?.reportTo ?? 'N/A';
+    int? gradeValue = dashboardControl.loginModel?.gradeValue;
+    int? gender = dashboardControl.loginModel?.gender;
+    int? userTypeId = dashboardControl.loginModel?.userTypeId;
 
     return Scaffold(
       appBar: AppBar(
@@ -58,17 +58,17 @@ class LeavePages_DashBoardState extends State<LeavePagesDashBoard> {
           },
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white,),
         ),
-        title: Text(
+        title: const Text(
           "Leave Page",
           style: TextStyle(color: Colors.white, fontSize: 30, fontFamily: 'Kanit'),
           textAlign: TextAlign.center,
         ),
       ),
       body: Container(
-        color: Color(0xffe9f0fd),
+        color: const Color(0xffe9f0fd),
         child: GridView.builder(
           itemCount: _photos.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
           ),
           itemBuilder: (context, index) {
@@ -83,7 +83,7 @@ class LeavePages_DashBoardState extends State<LeavePagesDashBoard> {
   }
 
   Widget _buildButtonWithBadge(Data data, String userName, String empCode, int? companyId, String companyName, String reportTo, int? gradeValue, int? gender, int? userTypeId) {
-    return GetBuilder<LeaveApprovalController>(
+    return GetBuilder<DashboardController>(
       builder: (controller) {
         int badgeCount = 0;
 
@@ -101,7 +101,7 @@ class LeavePages_DashBoardState extends State<LeavePagesDashBoard> {
             break;
           case 'Leave Approval\nby HR':
             if (userTypeId == 9) {
-              badgeCount = controller.badgeCountLeaveApprovalbyHR.value; // Set badge count only if userTypeId is 9
+              badgeCount = controller.badgeCountLeaveApprovalByHR.value; // Set badge count only if userTypeId is 9
               print("Leave Approval by HR badgeCount:: $badgeCount");
             }
             break;
@@ -114,8 +114,8 @@ class LeavePages_DashBoardState extends State<LeavePagesDashBoard> {
 
         if (badgeCount > -0) {
           return custom_badges.Badge(
-            badgeContent: Text('$badgeCount', style: TextStyle(color: Colors.white, fontSize: 18),),
-            badgeStyle: BadgeStyle(badgeColor: Colors.red,),
+            badgeContent: Text('$badgeCount', style: const TextStyle(color: Colors.white, fontSize: 18),),
+            badgeStyle: const BadgeStyle(badgeColor: Colors.red,),
             position: BadgePosition.topEnd(top: -8, end: -2),
             child: _buildButton(data, userName, empCode, companyId, companyName, reportTo, gradeValue, gender, userTypeId),
           );
@@ -157,7 +157,7 @@ class LeavePages_DashBoardState extends State<LeavePagesDashBoard> {
   }
 
   void _navigateToLeaveApply(String userName, String empCode, int? companyId, String companyName, int? gradeValue, int? gender) {
-    Future.delayed(Duration(milliseconds: 60), () {
+    Future.delayed(const Duration(milliseconds: 60), () {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -175,7 +175,7 @@ class LeavePages_DashBoardState extends State<LeavePagesDashBoard> {
   }
 
   void _navigateToSupervisorLeaveApproval(String userName, String empCode, int? companyId, String companyName) {
-    Future.delayed(Duration(milliseconds: 60), () {
+    Future.delayed(const Duration(milliseconds: 60), () {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -191,7 +191,7 @@ class LeavePages_DashBoardState extends State<LeavePagesDashBoard> {
   }
 
   void _navigateToLeaveApproval(String userName, String empCode, int? companyId, String companyName) {
-    Future.delayed(Duration(milliseconds: 60), () {
+    Future.delayed(const Duration(milliseconds: 60), () {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -207,7 +207,7 @@ class LeavePages_DashBoardState extends State<LeavePagesDashBoard> {
   }
 
   void _navigateToLeaveApprovalByHR(String userName, String empCode, int? companyId, String companyName, String reportTo, int? userTypeId) {
-    Future.delayed(Duration(milliseconds: 60), () {
+    Future.delayed(const Duration(milliseconds: 60), () {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -218,24 +218,6 @@ class LeavePages_DashBoardState extends State<LeavePagesDashBoard> {
             companyName: companyName,
             reportTo: reportTo ?? "",
             userTypeId: userTypeId ?? 0,
-            onCancel: () async {
-              final LeaveApprovalController controller = Get.put(LeaveApprovalController());
-              
-              String companyID = controller.loginModel?.companyId?.toString() ?? '';
-              String userTypeId = controller.loginModel?.userTypeId?.toString() ?? '';
-              String empCode = controller.loginModel?.empCode ?? '';
-
-              // Call ApiService function
-              int leaveDataList = await ApiLeaveApprovBadgeService.fetchGetWaitingLeaveForApproveByHr(
-                companyID: companyID,
-                userTypeId: userTypeId,
-                empCode: empCode,
-              );
-
-              controller.fetchLeaveApprovalByHrBadgeCount(companyID: companyID, empCode: empCode, userTypeId: userTypeId);
-              // Handle your data here, e.g., update state, show in UI
-              print(leaveDataList);
-            },
           ),
         ),
       );
@@ -243,10 +225,10 @@ class LeavePages_DashBoardState extends State<LeavePagesDashBoard> {
   }
 
   void _navigateToLeaveForTour() {
-    Future.delayed(Duration(milliseconds: 60), () {
+    Future.delayed(const Duration(milliseconds: 60), () {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => LeaveforTour()),
+        MaterialPageRoute(builder: (context) => const LeaveforTour()),
       );
     });
   }

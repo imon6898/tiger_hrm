@@ -1,11 +1,13 @@
 import 'dart:convert';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../../../LoginApiController/loginController.dart';
 import '../../../../../LoginApiController/loginModel.dart';
 
-class ApiLeaveApprovBadgeService {
+class ApiLeaveApproveBadgeService {
+
   static Future<int> fetchGetWaitingLeaveForApprove({required String companyID, required String empCode}) async {
     var headers = {
       'accept': '*/*', // Add accept header as per the curl command
@@ -36,7 +38,6 @@ class ApiLeaveApprovBadgeService {
     }
   }
 
-
   static Future<int> fetchGetWaitingLeaveForApproveByHr({required String companyID, required String empCode, required String userTypeId}) async {
     var headers = {
       'accept': '*/*', // Add accept header as per the curl command
@@ -66,7 +67,6 @@ class ApiLeaveApprovBadgeService {
       return 0;
     }
   }
-
 
   static Future<int> fetchGetWaitingLeaveForApproveSup({required String companyID, required String empCode}) async {
     var headers = {
@@ -101,71 +101,5 @@ class ApiLeaveApprovBadgeService {
     }
   }
 
-}
-
-class LeaveApprovalController extends GetxController {
-  var badgeCountSup = 0.obs;
-  var badgeCountLeaveApproval = 0.obs;
-  var badgeCountLeaveApprovalbyHR = 0.obs;
-  LoginModel? loginModel;
-
-  Rx<int> get totalLeaveBadgeCount {
-    print("userTypeId print by imon2: $userTypeId");
-    if (userTypeId == 9) {
-      return Rx<int>(badgeCountSup.value + badgeCountLeaveApproval.value + badgeCountLeaveApprovalbyHR.value);
-    } else {
-      return Rx<int>(badgeCountSup.value + badgeCountLeaveApproval.value);
-    }
-  }
-
-
-  Rx<int> userTypeId = 0.obs;
-
-  void fetchLeaveApprovalBadgeCount({required String companyID, required String empCode}) async {
-    try {
-      final countApproved = await ApiLeaveApprovBadgeService.fetchGetWaitingLeaveForApprove(companyID: companyID, empCode: empCode);
-      badgeCountLeaveApproval.value = countApproved;
-      print("badgeCount.value: $badgeCountLeaveApproval");
-    } catch (e) {
-      print('Error fetching badge count: $e');
-    }
-  }
-
-  void fetchLeaveApprovalByHrBadgeCount({required String companyID, required String empCode, required String userTypeId}) async {
-    try {
-      final countApprovedbyHR = await ApiLeaveApprovBadgeService.fetchGetWaitingLeaveForApproveByHr(
-        companyID: companyID,
-        userTypeId: userTypeId,
-        empCode: empCode,
-      );
-      badgeCountLeaveApprovalbyHR.value = countApprovedbyHR;
-      print("badgeCount.value: $badgeCountLeaveApprovalbyHR");
-
-      // Update the userTypeId value
-      this.userTypeId.value = int.parse(userTypeId);
-
-      print("userTypeId print by imon: ${this.userTypeId}");
-
-      // After fetching the count, update the totalLeaveBadgeCount
-      updateTotalLeaveBadgeCount();
-    } catch (e) {
-      print('Error fetching badge count: $e');
-    }
-  }
-
-  void updateTotalLeaveBadgeCount() {
-    totalLeaveBadgeCount.refresh(); // Refresh the value of totalLeaveBadgeCount
-  }
-
-
-  void fetchLeaveApprovalSupBadgeCount({required String companyID, required String empCode}) async {
-    try {
-      final countSup = await ApiLeaveApprovBadgeService.fetchGetWaitingLeaveForApproveSup(companyID: companyID, empCode: empCode);
-      badgeCountSup.value = countSup;
-      print("badgeCountSup.value: $badgeCountSup");
-    } catch (e) {
-      print('Error fetching badge count: $e');
-    }
-  }
 }
 

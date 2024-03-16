@@ -1,64 +1,46 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tiger_erp_hrm/LoginApiController/loginController.dart';
-import 'package:tiger_erp_hrm/LoginApiController/loginModel.dart';
-import 'package:tiger_erp_hrm/pages/authPages/get_employee_data/get_employeement_data.dart';
 import 'package:tiger_erp_hrm/pages/subPages/apply_attendence/apply_attendance.dart';
 import 'package:tiger_erp_hrm/pages/subPages/approve_attend.dart';
 import '../../../Coustom_widget/neumorphic_button.dart';
 import '../../Coustom_widget/CustomDatePickerField.dart';
 import '../../Coustom_widget/Textfield.dart';
+import '../../controller/dashboard_controller.dart';
 import '../subPages/report_page/attendence_pdf/pdf_page.dart';
-import '../subPages/report_page/selecting_report.dart';
 // import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-
-
 class AttendancePagesDashBoard extends StatefulWidget {
-  final LoginModel? loginModel;
-  final Position? location;
-  const AttendancePagesDashBoard({
-    Key? key,
-    this.loginModel,
-    this.location,
-
-  }) : super(key: key);
+  const AttendancePagesDashBoard({Key? key}) : super(key: key);
 
   @override
   State<AttendancePagesDashBoard> createState() => _AttendancePagesDashBoardState();
 }
 
 class _AttendancePagesDashBoardState extends State<AttendancePagesDashBoard> {
-  List _photos = [
+
+  final List _photos = [
     Data(image: 'lib/images/A1.png', text: 'Apply\nAttendance'),
     Data(image: 'lib/images/A2.png', text: 'Approve\nAttend. by HR'),
     Data(image: 'lib/images/A2.png', text: 'Attendance\nReport'),
-
   ];
-
-
-
+  var dashboardControl = Get.put(DashboardController());
   @override
   Widget build(BuildContext context) {
 
-    String userName = widget.loginModel?.userName ?? 'N/A';
-    String empCode = widget.loginModel?.empCode ?? 'N/A';
-    int? companyId = widget.loginModel?.companyId;
-    String companyName = widget.loginModel?.companyName ?? 'N/A';
-    String empName = widget.loginModel?.empName ?? 'N/A';
-    String reportTo = widget.loginModel?.reportTo ?? 'N/A';
-    int? gradeValue = widget.loginModel?.gradeValue;
-    int? gender = widget.loginModel?.gender;
-    int? userTypeId = widget.loginModel?.userTypeId;
-    Position? location = widget.location;
-
+    String userName = dashboardControl.loginModel?.userName ?? 'N/A';
+    String empCode = dashboardControl.loginModel?.empCode ?? 'N/A';
+    int? companyId = dashboardControl.loginModel?.companyId;
+    String companyName = dashboardControl.loginModel?.companyName ?? 'N/A';
+    String empName = dashboardControl.loginModel?.empName ?? 'N/A';
+    String reportTo = dashboardControl.loginModel?.reportTo ?? 'N/A';
+    int? gradeValue = dashboardControl.loginModel?.gradeValue;
+    int? gender = dashboardControl.loginModel?.gender;
+    int? userTypeId = dashboardControl.loginModel?.userTypeId;
+    Position? location = dashboardControl.currentLocation;
 
     return Scaffold(
       appBar: AppBar(
@@ -69,17 +51,17 @@ class _AttendancePagesDashBoardState extends State<AttendancePagesDashBoard> {
           },
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white,),
         ),
-        title: Text(
+        title: const Text(
           "Attendance Page",
           style: TextStyle(color: Colors.white, fontSize: 30, fontFamily: 'Kanit'),
           textAlign: TextAlign.center,
         ),
       ),
       body: Container(
-        color: Color(0xffe9f0fd),
+        color: const Color(0xffe9f0fd),
         child: GridView.builder(
             itemCount: _photos.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2, ),
             itemBuilder: (context, index) {
               return Padding(
@@ -91,7 +73,7 @@ class _AttendancePagesDashBoardState extends State<AttendancePagesDashBoard> {
                     // Handle item tap here
                     switch (_photos[index].text) {
                       case 'Apply\nAttendance':
-                        Future.delayed(Duration(milliseconds: 60), () {
+                        Future.delayed(const Duration(milliseconds: 60), () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => AttendancePage(
@@ -99,7 +81,7 @@ class _AttendancePagesDashBoardState extends State<AttendancePagesDashBoard> {
                               empCode: empCode,
                               companyID: companyId?.toString() ?? '',
                               companyName: companyName,
-                              location: widget.location ?? Position(
+                              location: dashboardControl.currentLocation ?? Position(
                                 latitude: 0.0,
                                 longitude: 0.0,
                                 accuracy: 0.0,
@@ -116,16 +98,16 @@ class _AttendancePagesDashBoardState extends State<AttendancePagesDashBoard> {
                         });
                         break;
                       case 'Approve\nAttend. by HR':
-                        Future.delayed(Duration(milliseconds: 60), () {
+                        Future.delayed(const Duration(milliseconds: 60), () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => ApproveAttendPage()),
+                            MaterialPageRoute(builder: (context) => const ApproveAttendPage()),
                           );
                         });
 
                         break;
                       case 'Attendance\nReport':
-                        Future.delayed(Duration(milliseconds: 60), () {
+                        Future.delayed(const Duration(milliseconds: 60), () {
 
                           // Navigator.push(
                           //   context,
@@ -140,13 +122,13 @@ class _AttendancePagesDashBoardState extends State<AttendancePagesDashBoard> {
 
                           Get.bottomSheet(
                               Container(
-                                decoration: BoxDecoration(
+                                decoration: const BoxDecoration(
                                   color: Color(0xffefebef),
                                   borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),
                                 ),
                                 child: Column(
                                   children: [
-                                    SizedBox(height: 10),
+                                    const SizedBox(height: 10),
                                     CustomTextFields(
                                       labelText: 'Employee Code',
                                       hintText: 'Employee Code',
@@ -205,13 +187,13 @@ class _AttendancePagesDashBoardState extends State<AttendancePagesDashBoard> {
                                         },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.green,
-                                          shape: StadiumBorder(),
+                                          shape: const StadiumBorder(),
                                         ),
-                                        child: Row(
+                                        child: const Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             Padding(
-                                              padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
+                                              padding: EdgeInsetsDirectional.fromSTEB(0, 0, 10, 0),
                                               child: Icon(Icons.save_as_outlined, color: Colors.white),
                                             ),
                                             Text(
@@ -242,7 +224,7 @@ class _AttendancePagesDashBoardState extends State<AttendancePagesDashBoard> {
   @override
   void initState() {
     super.initState();
-    empCodeController.text = widget.loginModel?.empCode ?? 'N/A';
+    empCodeController.text = dashboardControl.loginModel?.empCode ?? 'N/A';
   }
 
   TextEditingController empCodeController = TextEditingController();

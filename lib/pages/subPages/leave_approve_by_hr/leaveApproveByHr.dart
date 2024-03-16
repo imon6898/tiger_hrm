@@ -8,10 +8,8 @@ class LeaveApproveByHr extends StatefulWidget {
   final String companyName;
   final String reportTo;
   final int userTypeId;
-  final Function onCancel;
   const LeaveApproveByHr({
     super.key,
-    required this.onCancel,
     required this.userName,
     required this.empCode,
     required this.companyID,
@@ -66,7 +64,6 @@ class _LeaveApproveByHrState extends State<LeaveApproveByHr> {
                       companyName: widget.companyName,
                       reportTo: widget.reportTo,
                       userTypeId: widget.userTypeId ?? 0,
-                      onCancel: widget.onCancel,
                     ),
                   ),
                 ),
